@@ -1,0 +1,24 @@
+<form id="resource-form">
+    {% if not employees %}
+        <p style="text-align: center; color: #666;">There are no people in the project yet.</p>
+    {% else %}
+        {% for emp in employees %}
+            <div class="resource-row">
+                <div>
+                    <strong>{{ emp.name }}</strong> <br>
+                    <small style="color: #888;">{{ emp.role or 'Without role' }} (Capacity: {{ emp.capacity }})</small>
+                </div>
+                <div>
+                    {% set current_alloc = assignments.get(emp.id, '') %}
+                    
+                    <input type="number" step="0.1" min="0" max="{{ emp.capacity }}" 
+                        placeholder="0" class="alloc-input"
+                        name="emp_alloc_{{ emp.id }}"
+                        data-emp-id="{{ emp.id }}" 
+                        value="{{ current_alloc }}"> 
+                    <span style="font-size: 12px; color: #666;">FTE</span>
+                </div>
+            </div>
+        {% endfor %}
+    {% endif %}
+</form>
