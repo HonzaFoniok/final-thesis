@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="cs">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>KPVGantt</title>
+        
+        <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
+        <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
+        <link href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css" rel="stylesheet" >
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
+
+        <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    </head>
+
+    <body>
+        <nav class="navbar">
+            <div class="nav-brand">
+                KPVGantt 
+                {% if project %}
+                <span style="color: rgba(255,255,255,0.5);">|</span> <span class="project-name">Project: {{ project.name }}</span>
+                {% endif %}
+            </div>
+            <div class="nav-links">
+                <a href="/" title="Back to projects">Dashboard</a>
+                {% if project %}
+                <a href="/project/{{ project.id }}/tasks">Gantt</a>
+                <a href="/project/{{ project.id }}/resources">Resources</a>
+                <a href="/project/{{ project.id }}/employees">Employees</a>
+                {% endif %}
+            </div>
+        </nav>
+
+        <main>
+            {% block content %}
+            {% endblock %}
+        </main>
+
+        {% block scripts %}
+        {% endblock %}
+    </body>    
+</html>

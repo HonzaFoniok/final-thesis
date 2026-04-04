@@ -58,12 +58,14 @@ def topological_sort(tasks):
 
     return topo_order, successors
 
-#
+#function for calculating crtical path of project
 def calculate_critical_path(tasks, topo_order, successors):
     cpm_data = {}
     
     for task in tasks:
         node_id = int(task['id'])
+
+        #reading first 10 (YYYY-MM-DD) characters from DB
         start_str = str(task['start'])[:10]
         end_str = str(task['end'])[:10]
         
@@ -84,7 +86,8 @@ def calculate_critical_path(tasks, topo_order, successors):
 
     if not cpm_data:
         return [], {}
-        
+    
+    #real end of project from calendar
     project_end_dt = max([data['end_dt'] for data in cpm_data.values()])
 
     for node_id in reversed(topo_order):
@@ -96,6 +99,7 @@ def calculate_critical_path(tasks, topo_order, successors):
             min_succ_ls = min([cpm_data[succ]['LS_dt'] for succ in successors[node_id]])
             node['LF_dt'] = min_succ_ls - timedelta(days=1)
             
+        #the earliest possible beginning
         node['LS_dt'] = node['LF_dt'] - timedelta(days=node['duration'] - 1)
         node['slack'] = (node['LS_dt'] - node['start_dt']).days
 

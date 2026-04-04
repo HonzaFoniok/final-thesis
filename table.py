@@ -3,7 +3,9 @@ from datetime import datetime, date
 
 db = SQLAlchemy()
 
+#SQLAlchemy model for projects
 class Project(db.Model):
+    #attributes for projects
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String(100), nullable = False)
 
@@ -11,7 +13,9 @@ class Project(db.Model):
     tasks = db.relationship('Task', backref = 'project', lazy = True, cascade = "all, delete-orphan")
     resources = db.relationship('Resource', backref = 'project', lazy = True, cascade = "all, delete-orphan")
 
+#SQLAlchemy model for Tasks
 class Task(db.Model):
+    #attributes for tasks
     id = db.Column(db.Integer, primary_key = True)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable = False)
     name = db.Column(db.String(100))
@@ -21,6 +25,8 @@ class Task(db.Model):
     is_progress_manual = db.Column(db.Boolean, default = False)
     dependencies = db.Column(db.String(100))
     include_weekends = db.Column(db.Boolean, default = False)
+
+    #relations
     assignments = db.relationship('TaskEmployee', backref='task', lazy=True, cascade="all, delete-orphan")
     resource_assignments = db.relationship('TaskResource', backref='task', lazy=True, cascade="all, delete-orphan" )
 
@@ -60,7 +66,9 @@ class Task(db.Model):
             "resource_assignments" : [res_assign.to_dict() for res_assign in self.resource_assignments]
         }
 
+##SQLAlchemy model for Resources
 class Resource(db.Model):
+    #attributes for Resources
     id = db.Column(db.Integer, primary_key = True)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable = False)
     name = db.Column(db.String(100), nullable = False)
@@ -68,7 +76,6 @@ class Resource(db.Model):
     total_amount = db.Column(db.Float, default = 1.0)
     units = db.Column(db.String(20))
     cost_per_unit = db.Column(db.Float, default = 0.0)
-
 
     def to_dict(self):
         return {
