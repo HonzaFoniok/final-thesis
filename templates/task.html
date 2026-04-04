@@ -1,4 +1,4 @@
-<!doctype html>
+<!--<!doctype html>
 <html>
     <head>
         <title>KPVGantt - Tasks</title>
@@ -360,8 +360,10 @@
                 <a href="/project/{{ project.id }}/resources">Resources</a>
                 <a href="/project/{{ project.id }}/employees">Employees</a>
             </div>
-        </nav>
+        </nav>-->
+{% extends "base.html" %}
 
+{% block content %}
         <div style="padding: 20px 40px;">
             
             <div class="toolbar">
@@ -480,11 +482,15 @@
         </div>
 
     </div>
-        <script>
-const currentProjectId = parseInt("{{ project.id }}", 10);
 
-// 1. Definiton of columns
-const columns = [
+{% endblock %}
+
+{% block scripts %}
+    <script>
+        const currentProjectId = parseInt("{{ project.id }}", 10);
+
+        // 1. Definiton of columns
+        const columns = [
     { id: 'row_num', name: '', width: '40px' },
     { id: 'id', name: 'ID', hidden: true }, // hidden for user
     { id: 'name', name: 'Name' },
@@ -1238,5 +1244,4 @@ async function loadScheduleTable() {
         }
 
         </script>    
-    </body>    
-</html>
+{% endblock %}
