@@ -535,7 +535,10 @@ def get_employees():
       
 @app.route('/project/<int:project_id>/employees')
 def employee_page(project_id):
-      return render_template('employees.html', project_id = project_id)
+      project = Project.query.get_or_404(project_id)
+      return render_template('employees.html', project=project)
+      #return render_template('employees.html', project_id = project_id)
+      #render_template('employees.html', project_id = project.id)
 
 @app.route('/api/employees', methods = ['POST'])
 def add_employee():
