@@ -1,3 +1,7 @@
+# ----- FUNCTION for calculating CRITICAL PATH METHOD -----
+# topological sort is done using Kahn's algorithm
+
+#imports
 from datetime import datetime, timedelta
 from collections import defaultdict, deque
 
@@ -11,10 +15,12 @@ def parse_dependencies(deps):
 
 #topological sort of all tasks before calculating critical path
 def topological_sort(tasks):
+    #converting all IDs to integers 
     valid_ids = {int(task['id']) for task in tasks}
-    in_degree = {int(task['id']): 0 for task in tasks}
-    successors = defaultdict(list)
+    in_degree = {int(task['id']): 0 for task in tasks}  #dependencies of the task
+    successors = defaultdict(list)                      #succesors of the task
 
+    # filling the data
     for task in tasks:
         node_id = int(task['id'])
         
@@ -22,28 +28,37 @@ def topological_sort(tasks):
         raw_deps = parse_dependencies(task.get('dependencies', []))
         valid_deps = [d for d in raw_deps if d in valid_ids]
         
+        #number of predecessors
         in_degree[node_id] = len(valid_deps)
         for p in valid_deps:
+            #waiting for predecessor
             successors[p].append(node_id)
 
+    # put tasks without dependencies in the queque
     queue = deque([node_id for node_id in in_degree if in_degree[node_id] == 0])
     topo_order = []
 
+    #implementing Kahn's algorithm
     while queue:
+        #taking firts element from queque
         current = queue.popleft()
         topo_order.append(current)
 
+        #going through all the tasks that were waiting for this 'current' element from queque
         for neighbor in successors[current]:
+            #reducing the number of missing dependencies by one
             in_degree[neighbor] -= 1
+            #adding to the queque, if there are not any dependencies left
             if in_degree[neighbor] == 0:
                 queue.append(neighbor)
-
+    
+    #checking if the grapgh does not contain cycle
     if len(topo_order) != len(tasks):
         raise ValueError("Graph contains cycle. Critical path cannot be calculated.")
 
     return topo_order, successors
 
-
+#
 def calculate_critical_path(tasks, topo_order, successors):
     cpm_data = {}
     
@@ -87,3 +102,5 @@ def calculate_critical_path(tasks, topo_order, successors):
     critical_path_ids = [node_id for node_id, data in cpm_data.items() if data['slack'] <= 0]
     
     return critical_path_ids, cpm_data
+
+# --------------------------------------------------------
