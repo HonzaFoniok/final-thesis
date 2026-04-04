@@ -1,57 +1,6 @@
-<!--TODO: change the size of the columns fpr quantity and units -->
-<!DOCTYPE html>
-<html lang="cs">
-<head>
-    <meta charset="UTF-8">
-    <title>Resource management</title>
-    <link href="https://cdn.jsdelivr.net/npm/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
-    <style>
-        body { font-family: sans-serif; margin: 0; background: #fafafa; color: #333; }
-        
-        /* --- navbar --- */
-        .navbar {
-            background-color: #0095DB;
-            color: white;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 40px;
-            height: 60px;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-        }
-        .nav-brand { font-size: 18px; font-weight: bold; display: flex; align-items: center; gap: 10px; }
-        .nav-brand .project-name { font-weight: normal; opacity: 0.9; font-size: 16px; }
-        .nav-links { display: flex; gap: 15px; }
-        .nav-links a { color: white; text-decoration: none; font-size: 14px; font-weight: 500; padding: 8px 16px; border-radius: 4px; transition: background-color 0.2s; }
-        .nav-links a:hover { background-color: rgba(255, 255, 255, 0.15); }
-        .nav-links a.active { background-color: rgba(255, 255, 255, 0.25); font-weight: bold; }
+{% extends "base.html" %}
 
-        /* --- HLAVNÍ KONTEJNER A FORMULÁŘ --- */
-        .container { max-width: 900px; margin: 40px auto; background: white; padding: 30px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); border: 1px solid #e5e7eb; }
-        h1 { font-size: 24px; color: #333; margin-top: 0; margin-bottom: 20px;}
-        
-        .add-form { display: flex; gap: 12px; margin-bottom: 25px; align-items: center; background: #f8f9fa; padding: 15px; border-radius: 8px; border: 1px solid #e5e7eb;}
-        .add-form input, .add-form select { padding: 10px; border: 1px solid #d1d5db; border-radius: 6px; font-size: 14px; outline: none; transition: border-color 0.2s;}
-        .add-form input:focus, .add-form select:focus { border-color: #0095DB; }
-        
-        .btn-add { background: #0095DB; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-weight: 600; transition: background 0.2s; font-size: 14px; white-space: nowrap;}
-        .btn-add:hover { background: #007bb5; }
-    </style>
-</head>
-<body>
-
-    <nav class="navbar">
-        <div class="nav-brand">
-            KPVGantt <span style="color: rgba(255,255,255,0.5);">|</span> <span class="project-name">Project Settings</span>
-        </div>
-        <div class="nav-links">
-            <a href="/">Dashboard</a>
-            <a href="/project/{{ project.id }}/tasks">Gantt</a>
-            <a href="/project/{{ project.id }}/resources" class="active">Resources</a>
-            <a href="/project/{{ project.id }}/employees" >Employees</a>
-        </div>
-    </nav>
-
+{% block content %}
     <div class="container">
         <h1>Resource list</h1>
 
@@ -72,7 +21,9 @@
 
     <div id="resources-table"></div>
 </div>
+{% endblock %}
 
+{% block scripts %}
 <script src="https://cdn.jsdelivr.net/npm/gridjs/dist/gridjs.umd.js"></script>
 <script>
     const PROJECT_ID = {{ project.id }}; 
@@ -152,5 +103,5 @@
 
     initGrid();
 </script>
-</body>
-</html>
+
+{% endblock %}
