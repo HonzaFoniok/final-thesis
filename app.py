@@ -64,10 +64,10 @@ def create_project():
 def delete_project(project_id):
       #making sure all details are deleted
       try:
-            Employee.query.filter_by(project_id=project_id).delete()
+            """"Employee.query.filter_by(project_id=project_id).delete()
             Task.query.filter_by(project_id=project_id).delete()
             Resource.query.filter_by(project_id=project_id).delete()
-
+            """
             project = Project.query.get_or_404(project_id)
             db.session.delete(project)
             db.session.commit()
