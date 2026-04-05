@@ -64,14 +64,22 @@ def calculate_critical_path(tasks, topo_order, successors):
     
     for task in tasks:
         node_id = int(task['id'])
-
-        #reading first 10 (YYYY-MM-DD) characters from DB
         start_str = str(task['start'])[:10]
         end_str = str(task['end'])[:10]
         
+        # added include_weekends
+        include_weekends = task.get('include_weekends', True)
+        
         start_dt = datetime.strptime(start_str, '%Y-%m-%d')
         end_dt = datetime.strptime(end_str, '%Y-%m-%d')
-        duration = (end_dt - start_dt).days + 1
+        
+        # calculation of actual duration (valid calendar days)
+        duration = 0
+        curr = start_dt
+        while curr <= end_dt:
+            if include_weekends or curr.weekday() < 5:
+                duration += 1
+            curr += timedelta(days=1)
         
         valid_ids = {int(t['id']) for t in tasks}
         raw_deps = parse_dependencies(task.get('dependencies', []))
@@ -81,26 +89,47 @@ def calculate_critical_path(tasks, topo_order, successors):
             'start_dt': start_dt,
             'end_dt': end_dt,
             'duration': duration,
-            'dependencies': valid_deps
+            'dependencies': valid_deps,
+            'include_weekends': include_weekends
         }
 
     if not cpm_data:
         return [], {}
     
-    #real end of project from calendar
+    # Konec celého projektu
     project_end_dt = max([data['end_dt'] for data in cpm_data.values()])
 
     for node_id in reversed(topo_order):
         node = cpm_data[node_id]
+        include_weekends = node['include_weekends']
         
+        # latest finish
         if not successors[node_id]:
-            node['LF_dt'] = project_end_dt
+            lf = project_end_dt
         else:
-            min_succ_ls = min([cpm_data[succ]['LS_dt'] for succ in successors[node_id]])
-            node['LF_dt'] = min_succ_ls - timedelta(days=1)
+            lf = min([cpm_data[succ]['LS_dt'] for succ in successors[node_id]]) - timedelta(days=1)
             
-        #the earliest possible beginning
-        node['LS_dt'] = node['LF_dt'] - timedelta(days=node['duration'] - 1)
+        # ff the task cannot run on the weekend and the LF falls on the weekend, shorten the LF to Friday
+        if not include_weekends:
+            while lf.weekday() >= 5: # 5 sat, 6 san
+                lf -= timedelta(days=1)
+                
+        node['LF_dt'] = lf
+            
+        # 3latest start
+        ls = node['LF_dt']
+        days_to_subtract = node['duration'] - 1
+        
+        while days_to_subtract > 0:
+            ls -= timedelta(days=1)
+            if not include_weekends:
+                while ls.weekday() >= 5:
+                    ls -= timedelta(days=1)
+            days_to_subtract -= 1
+
+        node['LS_dt'] = ls
+        
+        # slack
         node['slack'] = (node['LS_dt'] - node['start_dt']).days
 
     critical_path_ids = [node_id for node_id, data in cpm_data.items() if data['slack'] <= 0]

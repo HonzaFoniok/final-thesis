@@ -131,7 +131,8 @@ def get_tasks():
                         'id': row_num,
                         'start': str(task.start),
                         'end': str(task.end),
-                        'dependencies': row_deps
+                        'dependencies': row_deps,
+                        'include_weekends': task.include_weekends
                   })
             
       #calculation of critical path
