@@ -58,5 +58,5 @@ python app.py
 After successful launch, the application will run on the local server. Open your web browser and go to:
 localhost:5000
 
-Autor: [Jan Foniok]
+Autor: Jan Foniok
 Year: 2026
