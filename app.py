@@ -62,11 +62,19 @@ def create_project():
 #deleting a project
 @app.route('/api/projects/<int:project_id>', methods = ['DELETE'])
 def delete_project(project_id):
-      project = Project.query.get_or_404(project_id)
-      db.session.delete(project)
-      db.session.commit()
-      return '', 204
+      #making sure all details are deleted
+      try:
+            Employee.query.filter_by(project_id=project_id).delete()
+            Task.query.filter_by(project_id=project_id).delete()
+            Resource.query.filter_by(project_id=project_id).delete()
 
+            project = Project.query.get_or_404(project_id)
+            db.session.delete(project)
+            db.session.commit()
+            return jsonify({"message": "Project and all data deleted."}), 204
+      except Exception as e:
+            db.session.rollback()
+            return jsonify({"error": "Error while deleting project."}), 500
 # -----------------------------
 
 # ----- API FOR TASKS ----- 
