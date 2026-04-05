@@ -10,6 +10,7 @@ class Project(db.Model):
     name = db.Column(db.String(100), nullable = False)
 
     #relations
+    employees = db.relationship('Employee', backref='project', lazy=True, cascade="all, delete-orphan")
     tasks = db.relationship('Task', backref = 'project', lazy = True, cascade = "all, delete-orphan")
     resources = db.relationship('Resource', backref = 'project', lazy = True, cascade = "all, delete-orphan")
 
