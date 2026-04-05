@@ -150,7 +150,7 @@ def get_resouce_modal(task_id):
             for a in task.assignments:
                   assignments[a.employee_id] = a.allocation
       
-      return render_template('resource_list.html', employees = employees, assignments = assignments)
+      return render_template('employee_list.html', employees = employees, assignments = assignments)
 
 @app.route('/api/tasks/<int:task_id>/assignments', methods = ['POST']) #EMPLOYEES, tohle presunout
 def update_task_assignments(task_id):
@@ -430,7 +430,7 @@ def get_material_modal(task_id):
             for a in task.resource_assignments:
                   assignments[a.resource_id] = a.quantity
       
-      return render_template('material_list.html', resources = resources, assignments = assignments)
+      return render_template('resource_list.html', resources = resources, assignments = assignments)
 
 @app.route('/api/tasks/<int:task_id>/material-assignments', methods = ['POST'])
 def update_task_material_assignments(task_id): #RENAME maybe? 
@@ -537,8 +537,6 @@ def get_employees():
 def employee_page(project_id):
       project = Project.query.get_or_404(project_id)
       return render_template('employees.html', project=project)
-      #return render_template('employees.html', project_id = project_id)
-      #render_template('employees.html', project_id = project.id)
 
 @app.route('/api/employees', methods = ['POST'])
 def add_employee():

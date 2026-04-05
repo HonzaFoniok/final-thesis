@@ -1,116 +1,124 @@
 {% extends "base.html" %}
 
 {% block content %}
-        <div style="padding: 20px 40px;">
-            
-            <div class="toolbar">
-                
-                <div class="toolbar-group">
-                    <button class="btn btn-primary" onclick="addTask()">+ Add Task</button>
-                </div>
+<div style="padding: 20px 40px;">
 
-                <div class="toolbar-group">
-                    <div style="display: flex; background: #f3f4f6; padding: 4px; border-radius: 6px; border: 1px solid #d1d5db; margin-right: 15px;">
-                        <button id="btn-view-gantt" class="btn" style="background: white; color: #0095DB; box-shadow: 0 1px 2px rgba(0,0,0,0.1); padding: 6px 12px;" onclick="switchMainView('gantt')">Gantt</button>
-                        <button id="btn-view-table" class="btn" style="background: transparent; color: #4b5563; padding: 6px 12px;" onclick="switchMainView('table')">Table</button>
-                    </div>
-
-                    <button id="btn-toggle-cpm" class="btn btn-secondary" onclick="toggleCPM()">Show Critical path</button>
-                    
-                    <select id="gantt-view-mode" class="view-select" onchange="changeGanttView(this.value)">
-                        <option value="Day" selected>Days</option>
-                        <option value="Week">Weeks</option>
-                        <option value="Month">Months</option>
-                    </select>
-                    
-                    <!--<button class="btn btn-secondary" onclick="toggleFullscreen()">⛶ Fullscreen</button>--> 
-                </div>
-
+    <div class="toolbar">
+    
+        <div class="toolbar-group">
+            <button class="btn btn-primary" onclick="addTask()">+ Add Task</button>
+        </div>
+    
+        <div class="toolbar-group">
+            <div
+                style="display: flex; background: #f3f4f6; padding: 4px; border-radius: 6px; border: 1px solid #d1d5db; margin-right: 15px;">
+                <button id="btn-view-gantt" class="btn"
+                    style="background: white; color: #0095DB; box-shadow: 0 1px 2px rgba(0,0,0,0.1); padding: 6px 12px;"
+                    onclick="switchMainView('gantt')">Gantt</button>
+                <button id="btn-view-table" class="btn" style="background: transparent; color: #4b5563; padding: 6px 12px;"
+                    onclick="switchMainView('table')">Table</button>
             </div>
+    
+            <button id="btn-toggle-cpm" class="btn btn-secondary" onclick="toggleCPM()">Show Critical path</button>
+    
+            <select id="gantt-view-mode" class="view-select" onchange="changeGanttView(this.value)">
+                <option value="Day" selected>Days</option>
+                <option value="Week">Weeks</option>
+                <option value="Month">Months</option>
+            </select>
+        </div>
+    
+    </div>
 
-            <div id="main-gantt-view" style="display: flex; align-items: stretch; margin-top: 20px; height: 75vh; width: 100%;">
-            
-            <div id="left-panel" style="width: 40%; min-width: 400px; display: flex; flex-direction: column; overflow-x: auto;">
-                <div id="table" style="flex: 1;"></div>
+    <div id="main-gantt-view" style="display: flex; align-items: stretch; margin-top: 20px; height: 75vh; width: 100%;">
+    
+        <div id="left-panel" style="width: 40%; min-width: 400px; display: flex; flex-direction: column; overflow-x: auto;">
+            <div id="table" style="flex: 1;"></div>
+        </div>
+    
+        <div class="resizer" id="dragMe" title="Drag to change the width of windows"></div>
+    
+        <div id="right-panel"
+            style="flex: 1; min-width: 400px; overflow-x: auto; border: 1px dashed #ccc; position: relative; background: #fff;">
+            <div id="gantt-placeholder"
+                style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #888; text-align: center;">
+                <strong>No tasks yet</strong><br>
+                <span style="font-size: 12px;">To display, fill in the 'Start date' and 'End date' for tasks</span>
             </div>
-
-            <div class="resizer" id="dragMe" title="Drag to change the width of windows"></div>
-
-            <div id="right-panel" style="flex: 1; min-width: 400px; overflow-x: auto; border: 1px dashed #ccc; position: relative; background: #fff;">
-                <div id="gantt-placeholder" style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: #888; text-align: center;">
-                    <strong>No tasks yet</strong><br>
-                    <span style="font-size: 12px;">To display, fill in the 'Start date' and 'End date' for tasks</span>
-                </div>
-                <div id="gantt-wrapper">
-                    <svg id="gantt"></svg> 
-                </div>
+            <div id="gantt-wrapper">
+                <svg id="gantt"></svg>
             </div>
         </div>
+    </div>
 
-        <div id="schedule-table-view" style="display: none; width: 100%; height: 75vh; margin-top: 20px; background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: auto; box-sizing: border-box;">
-            <h2 style="color: #0095DB; margin-top: 0;">Resource Calendar</h2>
-            <p style="text-align: center; color: #888; margin-top: 50px;">Zde se brzy objeví časová matice zaměstnanců...</p>
-        </div>
-        <div id="resource-modal" class="modal-overlay" style="display: none;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Assign employees to a task</h3>
-                    <button class="close-btn" onclick="closeResourceModal()">&times;</button>
-                </div>
-                
-                <div class="modal-body" id="resource-list-container">
-                    <p style="text-align: center; color: #666;">Loading data...</p>
-                </div>
-                
-                <div class="modal-footer">
-                    <button class="btn-cancel" onclick="closeResourceModal()">Cancel</button>
-                    <button class="btn-save" onclick="saveResourceAssignments()">Save</button>
-                </div>
+    <div id="schedule-table-view"
+        style="display: none; width: 100%; height: 75vh; margin-top: 20px; background: white; padding: 20px; border-radius: 8px; border: 1px solid #e5e7eb; box-shadow: 0 1px 3px rgba(0,0,0,0.1); overflow: auto; box-sizing: border-box;">
+        <h2 style="color: #0095DB; margin-top: 0;">Resource Calendar</h2>
+        <p style="text-align: center; color: #888; margin-top: 50px;">Placeholder</p>
+    </div>
+    <div id="resource-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Assign employees to a task</h3>
+                <button class="close-btn" onclick="closeResourceModal()">&times;</button>
+            </div>
+
+            <div class="modal-body" id="resource-list-container">
+                <p style="text-align: center; color: #666;">Loading data...</p>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeResourceModal()">Cancel</button>
+                <button class="btn-save" onclick="saveResourceAssignments()">Save</button>
             </div>
         </div>
-        <div id="material-modal" class="modal-overlay" style="display: none;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>Assign materials and equipment</h3>
-                    <button class="close-btn" onclick="closeMaterialModal()">&times;</button>
-                </div>
-                
-                <div class="modal-body" id="material-list-container">
-                    </div>
-                
-                <div class="modal-footer">
-                    <button class="btn-cancel" onclick="closeMaterialModal()">Zrušit</button>
-                    <button class="btn-save" onclick="saveMaterialAssignments()">Uložit</button>
-                </div>
+    </div>
+    <div id="material-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Assign materials and equipment</h3>
+                <button class="close-btn" onclick="closeMaterialModal()">&times;</button>
+            </div>
+
+            <div class="modal-body" id="material-list-container">
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn-cancel" onclick="closeMaterialModal()">Cancel</button>
+                <button class="btn-save" onclick="saveMaterialAssignments()">Save</button>
             </div>
         </div>
+    </div>
 
-        <div id="quick-add-modal" class="modal-overlay" style="display: none;">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h3>New task for: <span id="quick-add-emp-name" style="color: #0095DB;"></span></h3>
-                    <button class="close-btn" onclick="closeQuickAddModal()">&times;</button>
+    <div id="quick-add-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>New task for: <span id="quick-add-emp-name" style="color: #0095DB;"></span></h3>
+                <button class="close-btn" onclick="closeQuickAddModal()">&times;</button>
+            </div>
+
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px;">
+                <input type="hidden" id="quick-add-emp-id">
+
+                <div>
+                    <label style="font-size: 13px; font-weight: bold; color: #555;">Task name</label>
+                    <input type="text" id="quick-add-name" placeholder="e.g. Software testing"
+                        style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;">
                 </div>
-                
-                <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px;">
-                    <input type="hidden" id="quick-add-emp-id">
-                    
-                    <div>
-                        <label style="font-size: 13px; font-weight: bold; color: #555;">Task name</label>
-                        <input type="text" id="quick-add-name" placeholder="e.g. Software testing" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;">
+
+                <div style="display: flex; gap: 10px;">
+                    <div style="flex: 1;">
+                        <label style="font-size: 13px; font-weight: bold; color: #555;">Start</label>
+                        <input type="text" id="quick-add-start"
+                            style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;">
                     </div>
-                    
-                    <div style="display: flex; gap: 10px;">
-                        <div style="flex: 1;">
-                            <label style="font-size: 13px; font-weight: bold; color: #555;">Start</label>
-                            <input type="text" id="quick-add-start" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;">
-                        </div>
-                        <div style="flex: 1;">
-                            <label style="font-size: 13px; font-weight: bold; color: #555;">End</label>
-                            <input type="text" id="quick-add-end" style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;">
-                        </div>
+                    <div style="flex: 1;">
+                        <label style="font-size: 13px; font-weight: bold; color: #555;">End</label>
+                        <input type="text" id="quick-add-end"
+                            style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;">
                     </div>
-                
+                </div>
+
                 <div class="modal-footer">
                     <button class="btn-cancel" onclick="closeQuickAddModal()">Cancel</button>
                     <button class="btn-save" onclick="saveQuickTask()">Create task</button>
@@ -120,326 +128,326 @@
 
     </div>
 
-{% endblock %}
+    {% endblock %}
 
-{% block scripts %}
+    {% block scripts %}
     <script>
         const currentProjectId = parseInt("{{ project.id }}", 10);
 
         // 1. Definiton of columns
         const columns = [
-    { id: 'row_num', name: '', width: '40px' },
-    { id: 'id', name: 'ID', hidden: true }, // hidden for user
-    { id: 'name', name: 'Name' },
-    { id: 'start', name: 'Start date' },
-    { id: 'end', name: 'End date' },
-    { id: 'progress', name: 'Progress' },
-    { id: 'dependencies', name: 'Dependencies' },
-    {
-        id: 'include_weekends', 
-        name: 'Weekends',
-        formatter: (cell, row) => {
+            { id: 'row_num', name: '', width: '40px' },
+            { id: 'id', name: 'ID', hidden: true }, // hidden for user
+            { id: 'name', name: 'Name' },
+            { id: 'start', name: 'Start date' },
+            { id: 'end', name: 'End date' },
+            { id: 'progress', name: 'Progress' },
+            { id: 'dependencies', name: 'Dependencies' },
+            {
+                id: 'include_weekends',
+                name: 'Weekends',
+                formatter: (cell, row) => {
 
-            // is checkbox checked
-            const isChecked = (cell === true || cell === 'true' || cell === 1 || cell === '1') ? 'checked' : '';
-            
-            // searching for ID
-            const taskId = row.cells[1].data;
+                    // is checkbox checked
+                    const isChecked = (cell === true || cell === 'true' || cell === 1 || cell === '1') ? 'checked' : '';
 
-            // rendering checkbox
-            return gridjs.html(`
+                    // searching for ID
+                    const taskId = row.cells[1].data;
+
+                    // rendering checkbox
+                    return gridjs.html(`
                 <input type="checkbox" 
                        ${isChecked} 
                        style="cursor: pointer; width: 18px; height: 18px;"
                        onchange="updateWeekendFlag(${taskId}, this.checked)">
             `);
-        }
-    },
-    { 
-        id: 'employeesBtn',
-        name: 'Employees',
-        sort: false,
-        attributes: (cell, row) => { if (cell) return { 'data-editable': 'false' }; },
-        formatter: (cell, row) => {
-            const text = cell ? cell : '<span style="color: #aaa; font-style: italic;">+ Assign</span>';
-            const taskId = row.cells[1].data;
-            
-            return gridjs.html(`
+                }
+            },
+            {
+                id: 'employeesBtn',
+                name: 'Employees',
+                sort: false,
+                attributes: (cell, row) => { if (cell) return { 'data-editable': 'false' }; },
+                formatter: (cell, row) => {
+                    const text = cell ? cell : '<span style="color: #aaa; font-style: italic;">+ Assign</span>';
+                    const taskId = row.cells[1].data;
+
+                    return gridjs.html(`
                 <div style="cursor: pointer; width: 100%; min-height: 20px;" 
                      onclick="openResourceModal(${taskId})" 
                      title="Click to edit employees">
                     ${text}
                 </div>
             `);
-        }
-    },
-    { 
-        id: 'materialsBtn',
-        name: 'Material',
-        sort: false,
-        attributes: (cell, row) => { if (cell) return { 'data-editable': 'false' }; },
-        formatter: (cell, row) => {
-            const text = cell ? cell : '<span style="color: #aaa; font-style: italic;">+ Assign</span>';
-            const taskId = row.cells[1].data;
-            
-            return gridjs.html(`
+                }
+            },
+            {
+                id: 'materialsBtn',
+                name: 'Material',
+                sort: false,
+                attributes: (cell, row) => { if (cell) return { 'data-editable': 'false' }; },
+                formatter: (cell, row) => {
+                    const text = cell ? cell : '<span style="color: #aaa; font-style: italic;">+ Assign</span>';
+                    const taskId = row.cells[1].data;
+
+                    return gridjs.html(`
                 <div style="cursor: pointer; width: 100%; min-height: 20px;" 
                      onclick="openMaterialModal(${taskId})"
                      title="Click to edit equipment">
                     ${text}
                 </div>
             `);
-        }
-    },
-{ 
-    id: 'action',
-    name: '',
-    width: '40px',
-    sort: false,
-    formatter: (cell, row) => {
-        return gridjs.html(`
+                }
+            },
+            {
+                id: 'action',
+                name: '',
+                width: '40px',
+                sort: false,
+                formatter: (cell, row) => {
+                    return gridjs.html(`
             <button type="button" style="color:red; border:none; background:none; cursor:pointer; font-weight:bold; font-size: 16px;" onclick="deleteTask(${row.cells[1].data})">✖</button>
         `);
-    }
-}
-];
+                }
+            }
+        ];
 
-// 2. Grid.js config
-const grid = new gridjs.Grid({
-    columns: columns,
-    server: {
-        url: '/api/tasks/?project_id=' + currentProjectId,
-        then: data => data.map(task => [
-            task.row_num,      
-            task.id,            
-            task.name,         
-            task.start,       
-            task.end,         
-            task.progress,     
-            task.dependencies, 
-            task.include_weekends,
-            task.employees_str, 
-            task.resources_str, 
-            null // row for deleting
-        ])
-    },
-    search: false,
-    sort: false,
-    pagination: false,
-    style: {
-        th: { border: "1px solid #ccc", background: "#f0f0f0" },
-        td: { border: "1px solid #ccc", minHeight: "25px" },
-        table: { border: "1px solid #aaa" }
-    },
-});
-
-grid.render(document.getElementById('table'));
-
-// Logic for deleting task
-async function deleteTask(id) {
-    if(!confirm("Are you sure you want to delete this task?")) return;
-
-    try {
-        const response = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
-        if (response.ok) {
-            grid.forceRender(); 
-            renderGantt(); // 
-        } else {
-            alert("Error while deleting.");
-        }
-    } catch (err) {
-        console.error("Error:", err);
-    }
-}
-
-// Logic for adding tasks 
-async function addTask() {
-    try {
-        const response = await fetch('/api/tasks/', { 
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ project_id: currentProjectId })
+        // 2. Grid.js config
+        const grid = new gridjs.Grid({
+            columns: columns,
+            server: {
+                url: '/api/tasks/?project_id=' + currentProjectId,
+                then: data => data.map(task => [
+                    task.row_num,
+                    task.id,
+                    task.name,
+                    task.start,
+                    task.end,
+                    task.progress,
+                    task.dependencies,
+                    task.include_weekends,
+                    task.employees_str,
+                    task.resources_str,
+                    null // row for deleting
+                ])
+            },
+            search: false,
+            sort: false,
+            pagination: false,
+            style: {
+                th: { border: "1px solid #ccc", background: "#f0f0f0" },
+                td: { border: "1px solid #ccc", minHeight: "25px" },
+                table: { border: "1px solid #aaa" }
+            },
         });
 
-        if (response.ok) {
-            grid.forceRender();
-        } else {
-            alert("Error while creating task.");
-        }
-    } catch (err) {
-        console.error("Error while creating task: ", err);
-    }
-}
+        grid.render(document.getElementById('table'));
 
-function toggleCPM() {
-    const body = document.body;
-    const btn = document.getElementById('btn-toggle-cpm');
+        // Logic for deleting task
+        async function deleteTask(id) {
+            if (!confirm("Are you sure you want to delete this task?")) return;
 
-    // runs class on whole page
-    body.classList.toggle('show-cpm');
-
-    // change of colour of button
-    if (body.classList.contains('show-cpm')) {
-        btn.classList.add('active');
-        btn.textContent = 'Hide critical path';
-    } else {
-        btn.classList.remove('active');
-        btn.textContent = 'Show critical path';
-    }
-}
-
-// Logic for edit
-function makeEditable(root=document) {
-    root.querySelectorAll('td.gridjs-td').forEach(td => {
-        // Ignore #, ID and action 
-        const colId = td.getAttribute('data-column-id');
-        if(colId && colId !== 'action' && colId !== 'row_num' && colId !== 'id') {
-            td.setAttribute('contenteditable', 'true');
-        }
-    });
-}
-
-requestAnimationFrame(() => makeEditable(document));
-
-const container = document.querySelector('#table');
-const mutObserverTable = new MutationObserver((mutations) => {
-    makeEditable(container);
-});
-mutObserverTable.observe(container, {childList: true, subtree: true});
-
-let savedValue = null;
-
-// Save old value
-container.addEventListener('focusin', ev => {
-    if (ev.target.matches('td.gridjs-td')) {
-        savedValue = ev.target.textContent;
-    }
-});
-
-// Enter/escape
-container.addEventListener('keydown', ev => {
-    if (!ev.target.matches('td.gridjs-td')) return;
-    if (ev.key === 'Enter') {
-        ev.preventDefault();
-        ev.target.blur();
-    } 
-    else if (ev.key === 'Escape') {
-        ev.preventDefault();
-        ev.target.textContent = savedValue ?? '';
-        ev.target.blur();
-    }
-});
-
-// Save on server
-container.addEventListener('focusout', async ev => {
-    if (!ev.target.matches('td.gridjs-td')) return;
-    
-    const td = ev.target;
-    if (td.textContent === savedValue) return;
-    
-    const tr = td.parentElement;
-    const rowIndex = Array.from(tr.parentElement.children).indexOf(tr);
-    
-    const fieldName = td.getAttribute('data-column-id');
-
-    if (fieldName === 'row_num' || fieldName === 'action' || !fieldName) return;
-
-    const gridData = grid.config.store.state.data;
-    
-    if (gridData && gridData.rows[rowIndex]) {
-        let rowId;
-        const idColumnIndex = columns.findIndex(col => col.id === 'id');
-
-        if (idColumnIndex !== -1) {
-            rowId = gridData.rows[rowIndex].cells[idColumnIndex].data;
-        } else {
-            console.error('ID column not found');
-            return;
-        }
-        
-        try {
-            await fetch('/api/tasks/', {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    id: rowId,
-                    [fieldName]: td.textContent
-                })
-            });
-            // Redraws the diagram immediately after saving
-            if (typeof renderGantt === "function") {
-                renderGantt();
+            try {
+                const response = await fetch(`/api/tasks/${id}`, { method: 'DELETE' });
+                if (response.ok) {
+                    grid.forceRender();
+                    renderGantt(); // 
+                } else {
+                    alert("Error while deleting.");
+                }
+            } catch (err) {
+                console.error("Error:", err);
             }
-        } 
-        catch (err) {
-            console.error("Error while saving:", err);
-            td.textContent = savedValue;
-            alert("Error while saving!");
         }
-    }
-    savedValue = null;
-});
 
-let ganttChart = null;
-
-async function renderGantt() {
-    try {
-        const response = await fetch('/api/tasks/?project_id=' + currentProjectId);
-        const data = await response.json();
-        const frappeTasks = [];
-
-        for (const task of data) {
-            if (task.start && task.end) {
-                frappeTasks.push({
-                    id: task.row_num.toString(), 
-                    name: task.name || "Unnamed task",
-                    start: task.start,
-                    end: task.end,     
-                    progress: task.progress || 0,
-                    dependencies: task.dependencies || "",
-                    custom_class: task.is_critical ? "critical-path" : "",
-                    employees: task.employees_str,
-                    resources: task.resources_str
+        // Logic for adding tasks 
+        async function addTask() {
+            try {
+                const response = await fetch('/api/tasks/', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ project_id: currentProjectId })
                 });
+
+                if (response.ok) {
+                    grid.forceRender();
+                } else {
+                    alert("Error while creating task.");
+                }
+            } catch (err) {
+                console.error("Error while creating task: ", err);
             }
         }
-    
-        // show placeholder text if tasks are filtered out
-        if (frappeTasks.length === 0) {
-            document.getElementById('gantt-placeholder').style.display = 'block';
-            document.getElementById('gantt').style.display = 'none';
-            return;
+
+        function toggleCPM() {
+            const body = document.body;
+            const btn = document.getElementById('btn-toggle-cpm');
+
+            // runs class on whole page
+            body.classList.toggle('show-cpm');
+
+            // change of colour of button
+            if (body.classList.contains('show-cpm')) {
+                btn.classList.add('active');
+                btn.textContent = 'Hide critical path';
+            } else {
+                btn.classList.remove('active');
+                btn.textContent = 'Show critical path';
+            }
         }
 
-        // hide text if data are valid and show graph
-        document.getElementById('gantt-placeholder').style.display = 'none';
-        document.getElementById('gantt').style.display = 'block';
+        // Logic for edit
+        function makeEditable(root = document) {
+            root.querySelectorAll('td.gridjs-td').forEach(td => {
+                // Ignore #, ID and action 
+                const colId = td.getAttribute('data-column-id');
+                if (colId && colId !== 'action' && colId !== 'row_num' && colId !== 'id') {
+                    td.setAttribute('contenteditable', 'true');
+                }
+            });
+        }
 
-        if (ganttChart) {
-            ganttChart.refresh(frappeTasks);
-            setTimeout(() => {
-                drawWeekends(ganttChart);
-            }, 50);
-        } 
-        else {
-            ganttChart = new Gantt("#gantt", frappeTasks, {
-                header_height: 50,
-                column_width: 30,
-                step: 24,
-                view_modes: ['Quarter Day', 'Half Day', 'Day', 'Week', 'Month'],
-                bar_height: 20,
-                bar_corner_radius: 3,
-                arrow_curve: 5,
-                padding: 18,
-                view_mode: 'Day',
-                language: 'en',
+        requestAnimationFrame(() => makeEditable(document));
 
-                //my own design of the Gantt window 
-                custom_popup_html: function(task) {
-                    const empText = task.employees ? task.employees : '<span style="color:#aaa;">No employee assigned</span>';
-                    const resText = task.resources ? task.resources : '<span style="color:#aaa;">No resource assigned</span>';
+        const container = document.querySelector('#table');
+        const mutObserverTable = new MutationObserver((mutations) => {
+            makeEditable(container);
+        });
+        mutObserverTable.observe(container, { childList: true, subtree: true });
 
-                    return `
+        let savedValue = null;
+
+        // Save old value
+        container.addEventListener('focusin', ev => {
+            if (ev.target.matches('td.gridjs-td')) {
+                savedValue = ev.target.textContent;
+            }
+        });
+
+        // Enter/escape
+        container.addEventListener('keydown', ev => {
+            if (!ev.target.matches('td.gridjs-td')) return;
+            if (ev.key === 'Enter') {
+                ev.preventDefault();
+                ev.target.blur();
+            }
+            else if (ev.key === 'Escape') {
+                ev.preventDefault();
+                ev.target.textContent = savedValue ?? '';
+                ev.target.blur();
+            }
+        });
+
+        // Save on server
+        container.addEventListener('focusout', async ev => {
+            if (!ev.target.matches('td.gridjs-td')) return;
+
+            const td = ev.target;
+            if (td.textContent === savedValue) return;
+
+            const tr = td.parentElement;
+            const rowIndex = Array.from(tr.parentElement.children).indexOf(tr);
+
+            const fieldName = td.getAttribute('data-column-id');
+
+            if (fieldName === 'row_num' || fieldName === 'action' || !fieldName) return;
+
+            const gridData = grid.config.store.state.data;
+
+            if (gridData && gridData.rows[rowIndex]) {
+                let rowId;
+                const idColumnIndex = columns.findIndex(col => col.id === 'id');
+
+                if (idColumnIndex !== -1) {
+                    rowId = gridData.rows[rowIndex].cells[idColumnIndex].data;
+                } else {
+                    console.error('ID column not found');
+                    return;
+                }
+
+                try {
+                    await fetch('/api/tasks/', {
+                        method: 'PATCH',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            id: rowId,
+                            [fieldName]: td.textContent
+                        })
+                    });
+                    // Redraws the diagram immediately after saving
+                    if (typeof renderGantt === "function") {
+                        renderGantt();
+                    }
+                }
+                catch (err) {
+                    console.error("Error while saving:", err);
+                    td.textContent = savedValue;
+                    alert("Error while saving!");
+                }
+            }
+            savedValue = null;
+        });
+
+        let ganttChart = null;
+
+        async function renderGantt() {
+            try {
+                const response = await fetch('/api/tasks/?project_id=' + currentProjectId);
+                const data = await response.json();
+                const frappeTasks = [];
+
+                for (const task of data) {
+                    if (task.start && task.end) {
+                        frappeTasks.push({
+                            id: task.row_num.toString(),
+                            name: task.name || "Unnamed task",
+                            start: task.start,
+                            end: task.end,
+                            progress: task.progress || 0,
+                            dependencies: task.dependencies || "",
+                            custom_class: task.is_critical ? "critical-path" : "",
+                            employees: task.employees_str,
+                            resources: task.resources_str
+                        });
+                    }
+                }
+
+                // show placeholder text if tasks are filtered out
+                if (frappeTasks.length === 0) {
+                    document.getElementById('gantt-placeholder').style.display = 'block';
+                    document.getElementById('gantt').style.display = 'none';
+                    return;
+                }
+
+                // hide text if data are valid and show graph
+                document.getElementById('gantt-placeholder').style.display = 'none';
+                document.getElementById('gantt').style.display = 'block';
+
+                if (ganttChart) {
+                    ganttChart.refresh(frappeTasks);
+                    setTimeout(() => {
+                        drawWeekends(ganttChart);
+                    }, 50);
+                }
+                else {
+                    ganttChart = new Gantt("#gantt", frappeTasks, {
+                        header_height: 50,
+                        column_width: 30,
+                        step: 24,
+                        view_modes: ['Quarter Day', 'Half Day', 'Day', 'Week', 'Month'],
+                        bar_height: 20,
+                        bar_corner_radius: 3,
+                        arrow_curve: 5,
+                        padding: 18,
+                        view_mode: 'Day',
+                        language: 'en',
+
+                        //my own design of the Gantt window 
+                        custom_popup_html: function (task) {
+                            const empText = task.employees ? task.employees : '<span style="color:#aaa;">No employee assigned</span>';
+                            const resText = task.resources ? task.resources : '<span style="color:#aaa;">No resource assigned</span>';
+
+                            return `
                         <div style="padding: 10px; min-width: 180px;">
                             <h5 style="margin: 0 0 8px 0; color: white; font-size: 15px;">${task.name}</h5>
                             
@@ -460,82 +468,82 @@ async function renderGantt() {
                             </div>
                         </div>
                     `;
+                        }
+                    });
+                    setTimeout(() => {
+                        drawWeekends(ganttChart);
+                    }, 50);
                 }
-            });
-            setTimeout(() => {
-                drawWeekends(ganttChart);
-            }, 50);
-        }
-    }
-    catch (err) {
-        console.error("Error while loading Gantt's diagram:", err);
-    }
-}
-// first render after loading
-renderGantt();
-
-function changeGanttView(mode) {
-    if (ganttChart) {
-        ganttChart.change_view_mode(mode);
-    }
-}
-
-// fucntion for switching weekend modes
-async function updateWeekendFlag(taskId, isChecked) {
-    try {
-        await fetch('/api/tasks/', {
-            method: 'PATCH',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                id: taskId,
-                include_weekends: isChecked
-            })
-        });
-
-        // rendering Gantt after data saved on backend
-        renderGantt(); 
-        
-    } catch (error) {
-        console.error("Error saving weekend mode:", error);
-        alert("Failed to save weekend mode settings.");
-    }
-}
-
-function drawWeekends(ganttInstance) { //not the best solution
-    // 'paint' weekends only for day resolution
-    if (ganttInstance.options.view_mode !== 'Day') return;
-    
-    // take the main layer of graph
-    const svg = document.querySelector('.gantt-container svg');
-    const gridGroup = svg ? svg.querySelector('.grid') : null;
-    if (!gridGroup) return;
-
-    // find the white element of backround
-    const bgElement = gridGroup.querySelector('.grid-background');
-    const gridHeight = bgElement ? bgElement.getAttribute('height') : 1000;
-    const columnWidth = ganttInstance.options.column_width;
-
-    //holds the data
-    ganttInstance.dates.forEach((date, index) => {
-        const day = date.getDay(); // 0 = Sun, 6 = Sat
-        
-        if (day === 0 || day === 6) {
-            const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
-            rect.setAttribute("x", index * columnWidth);
-            rect.setAttribute("y", 0);
-            rect.setAttribute("width", columnWidth);
-            rect.setAttribute("height", gridHeight);
-            rect.setAttribute("fill", "#e5e7eb");
-            rect.setAttribute("opacity", "0.6");
-
-            if (bgElement && bgElement.nextSibling) {
-                gridGroup.insertBefore(rect, bgElement.nextSibling);
-            } else {
-                gridGroup.appendChild(rect);
+            }
+            catch (err) {
+                console.error("Error while loading Gantt's diagram:", err);
             }
         }
-    });
-}
+        // first render after loading
+        renderGantt();
+
+        function changeGanttView(mode) {
+            if (ganttChart) {
+                ganttChart.change_view_mode(mode);
+            }
+        }
+
+        // fucntion for switching weekend modes
+        async function updateWeekendFlag(taskId, isChecked) {
+            try {
+                await fetch('/api/tasks/', {
+                    method: 'PATCH',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        id: taskId,
+                        include_weekends: isChecked
+                    })
+                });
+
+                // rendering Gantt after data saved on backend
+                renderGantt();
+
+            } catch (error) {
+                console.error("Error saving weekend mode:", error);
+                alert("Failed to save weekend mode settings.");
+            }
+        }
+
+        function drawWeekends(ganttInstance) { //not the best solution
+            // 'paint' weekends only for day resolution
+            if (ganttInstance.options.view_mode !== 'Day') return;
+
+            // take the main layer of graph
+            const svg = document.querySelector('.gantt-container svg');
+            const gridGroup = svg ? svg.querySelector('.grid') : null;
+            if (!gridGroup) return;
+
+            // find the white element of backround
+            const bgElement = gridGroup.querySelector('.grid-background');
+            const gridHeight = bgElement ? bgElement.getAttribute('height') : 1000;
+            const columnWidth = ganttInstance.options.column_width;
+
+            //holds the data
+            ganttInstance.dates.forEach((date, index) => {
+                const day = date.getDay(); // 0 = Sun, 6 = Sat
+
+                if (day === 0 || day === 6) {
+                    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+                    rect.setAttribute("x", index * columnWidth);
+                    rect.setAttribute("y", 0);
+                    rect.setAttribute("width", columnWidth);
+                    rect.setAttribute("height", gridHeight);
+                    rect.setAttribute("fill", "#e5e7eb");
+                    rect.setAttribute("opacity", "0.6");
+
+                    if (bgElement && bgElement.nextSibling) {
+                        gridGroup.insertBefore(rect, bgElement.nextSibling);
+                    } else {
+                        gridGroup.appendChild(rect);
+                    }
+                }
+            });
+        }
 
         let currentTaskForResources = null;
 
@@ -549,7 +557,7 @@ function drawWeekends(ganttInstance) { //not the best solution
 
             try {
                 const response = await fetch(`/api/tasks/${taskId}/resource-modal?project_id=${currentProjectId}`);
-                
+
                 if (response.ok) {
                     container.innerHTML = await response.text();
                 } else {
@@ -570,7 +578,7 @@ function drawWeekends(ganttInstance) { //not the best solution
         async function saveResourceAssignments() {
             const form = document.getElementById('resource-form');
             if (!form) {
-                return closeResourceModal(); 
+                return closeResourceModal();
             }
             try {
                 const response = await fetch(`/api/tasks/${currentTaskForResources}/assignments`, {
@@ -600,11 +608,11 @@ function drawWeekends(ganttInstance) { //not the best solution
             document.getElementById('quick-add-emp-id').value = empId;
             document.getElementById('quick-add-emp-name').textContent = empName;
             document.getElementById('quick-add-name').value = '';
-            
+
             // pre-fill the start and end for the day the user clicked on
             document.getElementById('quick-add-start').value = dateStr;
-            document.getElementById('quick-add-end').value = dateStr; 
-            
+            document.getElementById('quick-add-end').value = dateStr;
+
             document.getElementById('quick-add-modal').style.display = 'flex';
 
             setTimeout(() => document.getElementById('quick-add-name').focus(), 100);
@@ -643,7 +651,7 @@ function drawWeekends(ganttInstance) { //not the best solution
 
                     grid.forceRender();
                     if (typeof renderGantt === "function") renderGantt();
-                    loadScheduleTable(); 
+                    loadScheduleTable();
                 } else {
                     alert("Chyba při vytváření úkolu na serveru.");
                 }
@@ -654,14 +662,14 @@ function drawWeekends(ganttInstance) { //not the best solution
         }
 
         async function openMaterialModal(taskId) {
-            currentTaskForResources = taskId; 
+            currentTaskForResources = taskId;
             const container = document.getElementById('material-list-container');
             container.innerHTML = '<p style="text-align: center; color: #666;">Loading data...</p>';
             document.getElementById('material-modal').style.display = 'flex';
 
             try {
                 const response = await fetch(`/api/tasks/${taskId}/material-modal?project_id=${currentProjectId}`);
-                
+
                 if (response.ok) {
                     container.innerHTML = await response.text();
                 } else {
@@ -688,11 +696,11 @@ function drawWeekends(ganttInstance) { //not the best solution
                     body: new FormData(form)
                 });
 
-                const resultData = await response.json(); 
+                const resultData = await response.json();
 
                 if (response.ok) {
                     closeMaterialModal();
-                    grid.forceRender(); 
+                    grid.forceRender();
                 } else {
                     alert("Error: " + resultData.error);
                 }
@@ -703,87 +711,87 @@ function drawWeekends(ganttInstance) { //not the best solution
         }
 
         // logic for resizer
-            const resizer = document.getElementById('dragMe');
-            const leftPanel = document.getElementById('left-panel');
-            let isHandlerDragging = false;
+        const resizer = document.getElementById('dragMe');
+        const leftPanel = document.getElementById('left-panel');
+        let isHandlerDragging = false;
 
-            // load saved page
-            const savedWidth = localStorage.getItem('ganttSplitterWidth');
-            if (savedWidth) {
-                leftPanel.style.width = savedWidth;
-                leftPanel.style.flex = "none";
+        // load saved page
+        const savedWidth = localStorage.getItem('ganttSplitterWidth');
+        if (savedWidth) {
+            leftPanel.style.width = savedWidth;
+            leftPanel.style.flex = "none";
+        }
+
+        resizer.addEventListener('mousedown', function (e) {
+            e.preventDefault(); // Prevents default text highlighting
+            isHandlerDragging = true;
+            document.body.style.cursor = 'col-resize';
+        });
+
+        document.addEventListener('mousemove', function (e) {
+            if (!isHandlerDragging) return;
+
+            let containerOffsetLeft = leftPanel.parentNode.getBoundingClientRect().left;
+            let pointerRelativeXpos = e.clientX - containerOffsetLeft;
+
+            const minWidth = 400;
+            const maxWidth = leftPanel.parentNode.clientWidth - 400;
+
+            let newWidth = Math.max(minWidth, Math.min(pointerRelativeXpos, maxWidth));
+
+            leftPanel.style.width = newWidth + 'px';
+            leftPanel.style.flex = "none";
+        });
+
+        // save page after mouseup
+        document.addEventListener('mouseup', function (e) {
+            if (isHandlerDragging) {
+                isHandlerDragging = false;
+                document.body.style.cursor = '';
+
+                localStorage.setItem('ganttSplitterWidth', leftPanel.style.width);
+
+                window.dispatchEvent(new Event('resize'));
             }
+        });
 
-            resizer.addEventListener('mousedown', function(e) {
-                e.preventDefault(); // Prevents default text highlighting
-                isHandlerDragging = true;
-                document.body.style.cursor = 'col-resize';
-            });
-
-            document.addEventListener('mousemove', function(e) {
-                if (!isHandlerDragging) return;
-
-                let containerOffsetLeft = leftPanel.parentNode.getBoundingClientRect().left;
-                let pointerRelativeXpos = e.clientX - containerOffsetLeft;
-                
-                const minWidth = 400; 
-                const maxWidth = leftPanel.parentNode.clientWidth - 400; 
-                
-                let newWidth = Math.max(minWidth, Math.min(pointerRelativeXpos, maxWidth));
-                
-                leftPanel.style.width = newWidth + 'px';
-                leftPanel.style.flex = "none"; 
-            });
-
-            // save page after mouseup
-            document.addEventListener('mouseup', function(e) {
-                if (isHandlerDragging) {
-                    isHandlerDragging = false;
-                    document.body.style.cursor = ''; 
-
-                    localStorage.setItem('ganttSplitterWidth', leftPanel.style.width);
-
-                    window.dispatchEvent(new Event('resize'));
-                }
-            });
-
-           function switchMainView(view) {
+        function switchMainView(view) {
             const ganttView = document.getElementById('main-gantt-view');
             const scheduleView = document.getElementById('schedule-table-view');
-            
+
             const btnGantt = document.getElementById('btn-view-gantt');
             const btnTable = document.getElementById('btn-view-table');
 
             if (view === 'gantt') {
-                ganttView.style.display = 'flex'; 
+                ganttView.style.display = 'flex';
                 scheduleView.style.display = 'none';
-                
+
                 // Highlight the Gantt button
                 btnGantt.style.background = 'white';
                 btnGantt.style.color = '#0095DB';
                 btnGantt.style.boxShadow = '0 1px 2px rgba(0,0,0,0.1)';
-                
+
                 btnTable.style.background = 'transparent';
                 btnTable.style.color = '#4b5563';
                 btnTable.style.boxShadow = 'none';
             } else {
                 ganttView.style.display = 'none';
-                scheduleView.style.display = 'block'; 
-                
+                scheduleView.style.display = 'block';
+
                 // Highlight the table button
                 btnTable.style.background = 'white';
                 btnTable.style.color = '#0095DB';
                 btnTable.style.boxShadow = '0 1px 2px rgba(0,0,0,0.1)';
-                
+
                 btnGantt.style.background = 'transparent';
                 btnGantt.style.color = '#4b5563';
                 btnGantt.style.boxShadow = 'none';
 
                 // loading data from backend
-                loadScheduleTable(); 
+                loadScheduleTable();
             }
         }
-async function loadScheduleTable() {
+        async function loadScheduleTable() {
             const container = document.getElementById('schedule-table-view');
             container.innerHTML = '<p style="text-align: center; color: #666; margin-top: 50px;">Loading data from calendar...</p>';
 
@@ -807,7 +815,7 @@ async function loadScheduleTable() {
 
                 while (currentDateStr <= endDateStr) {
                     dates.push(currentDateStr);
-                    
+
                     // Safely add 1 day without the influence of time zones
                     let d = new Date(currentDateStr);
                     d.setUTCDate(d.getUTCDate() + 1);
@@ -816,16 +824,16 @@ async function loadScheduleTable() {
 
                 // build an HTML table
                 let html = '<table style="min-width: 100%; border-collapse: collapse; font-size: 13px; text-align: center; border: 1px solid #ccc;">';
-                
+
                 // header (days)
                 html += '<thead><tr>';
                 html += '<th style="border: 1px solid #ccc; padding: 10px; text-align: left; background: #f8f9fa; position: sticky; left: 0; z-index: 2; width: 150px;">Employee</th>';
-                
+
                 dates.forEach(dateStr => {
                     const d = new Date(dateStr);
                     const isWeekend = d.getUTCDay() === 0 || d.getUTCDay() === 6; // sat or sun in utc
-                    const bg = isWeekend ? '#fce8d8' : '#f8f9fa'; 
-                    
+                    const bg = isWeekend ? '#fce8d8' : '#f8f9fa';
+
                     html += `<th style="border: 1px solid #ccc; padding: 8px; background: ${bg}; min-width: 60px;">
                         ${d.getUTCDate()}. ${d.getUTCMonth() + 1}.
                     </th>`;
@@ -836,17 +844,17 @@ async function loadScheduleTable() {
                 data.schedule.forEach(emp => {
                     html += `<tr>`;
                     html += `<td style="border: 1px solid #ccc; padding: 8px; text-align: left; font-weight: bold; background: white; position: sticky; left: 0; z-index: 1;">${emp.emp_name}</td>`;
-                    
+
                     dates.forEach(dateStr => {
                         const d = new Date(dateStr);
                         const isWeekend = d.getUTCDay() === 0 || d.getUTCDay() === 6;
                         const bg = isWeekend ? '#fce8d8' : 'white';
-                        
+
                         let cellContent = '';
-                        
+
                         emp.tasks.forEach(task => {
                             if (dateStr >= task.start && dateStr <= task.end) {
-                                
+
                                 // added logic for weekends
                                 const isWeekendDay = (new Date(dateStr)).getUTCDay() === 0 || (new Date(dateStr)).getUTCDay() === 6;
                                 if (isWeekendDay && !task.include_weekends) {
@@ -867,7 +875,7 @@ async function loadScheduleTable() {
             ${cellContent}
          </td>`;
                     });
-                    
+
                     html += `</tr>`;
                 });
 
@@ -880,5 +888,5 @@ async function loadScheduleTable() {
             }
         }
 
-        </script>    
-{% endblock %}
+    </script>
+    {% endblock %}
