@@ -5,10 +5,10 @@
         <h1>Employees list</h1>
 
         <div class="inline-form-row">
-    <input type="text" placeholder="Name (e.g. John Doe)">
-    <input type="text" placeholder="Role (e.g. Tester)">
-    <input type="number" value="1">
-    <button class="btn btn-primary">Add employee</button>
+    <input type="text" id="emp-name" placeholder="Name (e.g. John Doe)">
+    <input type="text" id="emp-role" placeholder="Role (e.g. Tester)">
+    <input type="number" id="emp-cap" value="1">
+    <button class="btn btn-add" onclick="addEmployee()">Add employee</button>
 </div>
 
     <div id="employees-table"></div>
