@@ -271,6 +271,11 @@ body.show-cpm .bar-wrapper.critical-path .bar-progress { fill: #bd2130 !importan
     transition: border-color 0.2s;
 }
 .view-select:hover, .view-select:focus { border-color: #0095DB; }
+
+.weekend-highlight {
+    fill: url(#weekendPattern) !important;
+    pointer-events: none; /* Propustí kliknutí myši skrz šrafování na mřížku/úkoly */
+}
 /* ------------------- */
 
 /* ----- MODALS ----- */
