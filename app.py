@@ -5,7 +5,7 @@ from flask import Flask, request, jsonify, render_template
 from datetime import datetime
 import os
 
-from table import db, Task, Resource, Project, Employee, TaskEmployee, TaskResource
+from models import db, Task, Resource, Project, Employee, TaskEmployee, TaskResource
 from utils.cpm import topological_sort, calculate_critical_path
 from utils.utils import normalize_date, shift_dependent_tasks, calculate_delta, add_custom_days
 

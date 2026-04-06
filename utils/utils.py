@@ -2,7 +2,7 @@
 
 #imports
 from datetime import datetime, timedelta
-from table import Task
+from models import Task
 
 # translate dates (for CPM)
 def normalize_date(date_str):
