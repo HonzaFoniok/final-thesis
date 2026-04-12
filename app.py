@@ -37,6 +37,11 @@ def project_resources(project_id):
       project = Project.query.get_or_404(project_id)
       return render_template('resources.html', project = project)
 
+#move the employee route here
+@app.route('/project/<int:project_id>/employees')
+def employee_page(project_id):
+      project = Project.query.get_or_404(project_id)
+      return render_template('employees.html', project=project)
 
 # ----- API FOR PROJECTS -----
 
@@ -542,11 +547,6 @@ def get_employees():
 
       return jsonify([employee.to_dict() for employee in employees])
       
-@app.route('/project/<int:project_id>/employees')
-def employee_page(project_id):
-      project = Project.query.get_or_404(project_id)
-      return render_template('employees.html', project=project)
-
 @app.route('/api/employees', methods = ['POST'])
 def add_employee():
       data = request.get_json()
