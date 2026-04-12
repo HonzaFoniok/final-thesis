@@ -274,7 +274,21 @@ body.show-cpm .bar-wrapper.critical-path .bar-progress { fill: #bd2130 !importan
 
 .weekend-highlight {
     fill: url(#weekendPattern) !important;
-    pointer-events: none; /* Propustí kliknutí myši skrz šrafování na mřížku/úkoly */
+    pointer-events: none; 
+}
+
+/* hatching weekends */
+.table-weekend {
+    background: repeating-linear-gradient(
+        45deg,
+        rgba(0, 0, 0, 0.1),     
+        rgba(0, 0, 0, 0.1) 1px,
+        transparent 1px,  
+        transparent 8px
+    ) !important;
+    
+    /* little color-higlight of weekends */
+    background-color: #fcfcfc !important;
 }
 /* ------------------- */
 
