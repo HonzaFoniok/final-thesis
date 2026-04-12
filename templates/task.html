@@ -4,40 +4,42 @@
 <div style="padding: 20px 40px;">
 
     <div class="toolbar">
-    
+
         <div class="toolbar-group">
             <button class="btn btn-primary" onclick="addTask()">+ Add Task</button>
         </div>
-    
+
         <div class="toolbar-group">
             <div
                 style="display: flex; background: #f3f4f6; padding: 4px; border-radius: 6px; border: 1px solid #d1d5db; margin-right: 15px;">
                 <button id="btn-view-gantt" class="btn"
                     style="background: white; color: #0095DB; box-shadow: 0 1px 2px rgba(0,0,0,0.1); padding: 6px 12px;"
                     onclick="switchMainView('gantt')">Gantt</button>
-                <button id="btn-view-table" class="btn" style="background: transparent; color: #4b5563; padding: 6px 12px;"
+                <button id="btn-view-table" class="btn"
+                    style="background: transparent; color: #4b5563; padding: 6px 12px;"
                     onclick="switchMainView('table')">Table</button>
             </div>
-    
+
             <button id="btn-toggle-cpm" class="btn btn-secondary" onclick="toggleCPM()">Show Critical path</button>
-    
+
             <select id="gantt-view-mode" class="view-select" onchange="changeGanttView(this.value)">
                 <option value="Day" selected>Days</option>
                 <option value="Week">Weeks</option>
                 <option value="Month">Months</option>
             </select>
         </div>
-    
+
     </div>
 
     <div id="main-gantt-view" style="display: flex; align-items: stretch; margin-top: 20px; height: 75vh; width: 100%;">
-    
-        <div id="left-panel" style="width: 40%; min-width: 400px; display: flex; flex-direction: column; overflow-x: auto;">
+
+        <div id="left-panel"
+            style="width: 40%; min-width: 400px; display: flex; flex-direction: column; overflow-x: auto;">
             <div id="table" style="flex: 1;"></div>
         </div>
-    
+
         <div class="resizer" id="dragMe" title="Drag to change the width of windows"></div>
-    
+
         <div id="right-panel"
             style="flex: 1; min-width: 400px; overflow-x: auto; border: 1px dashed #ccc; position: relative; background: #fff;">
             <div id="gantt-placeholder"
@@ -518,29 +520,51 @@
             const gridGroup = svg ? svg.querySelector('.grid') : null;
             if (!gridGroup) return;
 
-            // find the white element of backround
+            if (!svg.querySelector('#weekendPattern')) {
+                const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+                const pattern = document.createElementNS("http://www.w3.org/2000/svg", "pattern");
+
+                pattern.setAttribute("id", "weekendPattern");
+                pattern.setAttribute("width", "10");
+                pattern.setAttribute("height", "10");
+                pattern.setAttribute("patternTransform", "rotate(45)");
+                pattern.setAttribute("patternUnits", "userSpaceOnUse");
+
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", "0");
+                line.setAttribute("y1", "0");
+                line.setAttribute("x2", "0");
+                line.setAttribute("y2", "10");
+                line.setAttribute("stroke", "#94a3b8");
+                line.setAttribute("stroke-width", "1");
+
+                pattern.appendChild(line);
+                defs.appendChild(pattern);
+                // pattern definition at the very beginning of the SVG
+                svg.insertBefore(defs, svg.firstChild);
+            }
+
+            // removing previous weekends
+            gridGroup.querySelectorAll('.weekend-highlight').forEach(el => el.remove());
+
+            // find the background element to match its dimensions
             const bgElement = gridGroup.querySelector('.grid-background');
             const gridHeight = bgElement ? bgElement.getAttribute('height') : 1000;
+            const gridY = bgElement ? bgElement.getAttribute('y') : 0;
             const columnWidth = ganttInstance.options.column_width;
 
-            //holds the data
+            // holds the data
             ganttInstance.dates.forEach((date, index) => {
                 const day = date.getDay(); // 0 = Sun, 6 = Sat
 
                 if (day === 0 || day === 6) {
                     const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
                     rect.setAttribute("x", index * columnWidth);
-                    rect.setAttribute("y", 0);
+                    rect.setAttribute("y", gridY);
                     rect.setAttribute("width", columnWidth);
                     rect.setAttribute("height", gridHeight);
-                    rect.setAttribute("fill", "#e5e7eb");
-                    rect.setAttribute("opacity", "0.6");
-
-                    if (bgElement && bgElement.nextSibling) {
-                        gridGroup.insertBefore(rect, bgElement.nextSibling);
-                    } else {
-                        gridGroup.appendChild(rect);
-                    }
+                    rect.setAttribute("class", "weekend-highlight");
+                    gridGroup.appendChild(rect);
                 }
             });
         }
@@ -801,10 +825,9 @@
 
                 if (data.status === "empty") {
                     container.innerHTML = `<p style="text-align: center; color: #888; margin-top: 50px;">
-                        <strong>No data to display</strong><br>
-                        To display the matrix, tasks must have a start and end time and assigned employees.
-
-                    </p>`;
+                <strong>No data to display</strong><br>
+                To display the matrix, tasks must have a start and end time and assigned employees.
+            </p>`;
                     return;
                 }
 
@@ -832,11 +855,14 @@
                 dates.forEach(dateStr => {
                     const d = new Date(dateStr);
                     const isWeekend = d.getUTCDay() === 0 || d.getUTCDay() === 6; // sat or sun in utc
-                    const bg = isWeekend ? '#fce8d8' : '#f8f9fa';
 
-                    html += `<th style="border: 1px solid #ccc; padding: 8px; background: ${bg}; min-width: 60px;">
-                        ${d.getUTCDate()}. ${d.getUTCMonth() + 1}.
-                    </th>`;
+                    // PŘIDÁNA LOGIKA PRO ŠRAFOVÁNÍ:
+                    const cssClass = isWeekend ? 'table-weekend' : '';
+                    const defaultBg = isWeekend ? '' : 'background: #f8f9fa;'; // Pro všední dny necháme šedivou
+
+                    html += `<th class="${cssClass}" style="border: 1px solid #ccc; padding: 8px; ${defaultBg} min-width: 60px;">
+                ${d.getUTCDate()}. ${d.getUTCMonth() + 1}.
+            </th>`;
                 });
                 html += '</tr></thead><tbody>';
 
@@ -848,7 +874,10 @@
                     dates.forEach(dateStr => {
                         const d = new Date(dateStr);
                         const isWeekend = d.getUTCDay() === 0 || d.getUTCDay() === 6;
-                        const bg = isWeekend ? '#fce8d8' : 'white';
+
+                        // PŘIDÁNA LOGIKA PRO ŠRAFOVÁNÍ V TĚLE TABULKY:
+                        const cssClass = isWeekend ? 'table-weekend' : '';
+                        const defaultBg = isWeekend ? '' : 'background: white;';
 
                         let cellContent = '';
 
@@ -862,18 +891,18 @@
                                 }
 
                                 cellContent += `
-                                    <div style="background: #e1f0fa; color: #0078d7; border-left: 3px solid #0095DB; border-radius: 2px; padding: 4px; margin-bottom: 3px; font-size: 11px; font-weight: 500; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" 
-                                         title="Detail úkolu: ${task.task_name}"
-                                         onclick="event.stopPropagation(); openResourceModal(${task.task_id})">
-                                        ${task.task_name}
-                                    </div>`;
+                            <div style="background: #e1f0fa; color: #0078d7; border-left: 3px solid #0095DB; border-radius: 2px; padding: 4px; margin-bottom: 3px; font-size: 11px; font-weight: 500; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" 
+                                 title="Detail úkolu: ${task.task_name}"
+                                 onclick="event.stopPropagation(); openResourceModal(${task.task_id})">
+                                ${task.task_name}
+                            </div>`;
                             }
                         });
 
-                        html += `<td style="border: 1px solid #ccc; padding: 4px; background: ${bg}; vertical-align: top; cursor: cell;"
-             onclick="openQuickAddModal(${emp.emp_id}, '${emp.emp_name}', '${dateStr}')">
-            ${cellContent}
-         </td>`;
+                        html += `<td class="${cssClass}" style="border: 1px solid #ccc; padding: 4px; ${defaultBg} vertical-align: top; cursor: cell;"
+onclick="openQuickAddModal(${emp.emp_id}, '${emp.emp_name}', '${dateStr}')">
+${cellContent}
+</td>`;
                     });
 
                     html += `</tr>`;
