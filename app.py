@@ -1,7 +1,5 @@
-#TO-DO na frontend: vyznaceni vikendu
-#To-DO na backend: komentare
-
 from flask import Flask, request, jsonify, render_template
+from sqlalchemy.exc import IntegrityError
 from datetime import datetime
 import os
 
@@ -50,20 +48,29 @@ def employee_page(project_id):
 def create_project():
       data = request.get_json()
       name = data.get('name', 'New project')
+      try:
+            #creating the project
+            new_project = Project(name = name)
+            db.session.add(new_project)
+            db.session.commit()
+
+            #creating 10 empty rows of tasks - for table in Gantt view
+            for _ in range(10):
+                  task = Task(project_id = new_project.id, name = "", start = "", end = "", progress = 0, dependencies = 0)
+                  db.session.add(task)
+
+            db.session.commit()
+            return jsonify({'message' : 'Project created', 'id' : new_project.id}), 201
       
-      #creating the project
-      new_project = Project(name = name)
-      db.session.add(new_project)
-      db.session.commit()
-
-      #creating 10 empty rows of tasks - for table in Gantt view
-      for _ in range(10):
-            task = Task(project_id = new_project.id, name = "", start = "", end = "", progress = 0, dependencies = 0)
-            db.session.add(task)
-
-      db.session.commit()
-      return jsonify({'message' : 'Project created', 'id' : new_project.id}), 201
-
+      #unique name of project
+      except IntegrityError:
+            db.session.rollback()
+            return jsonify({'error':f"Project with name {name} allready exists!"}), 400
+      
+      except Exception as e:
+            db.session.rollback()
+            return jsonify({'error' : str(e)}), 500
+      
 #deleting a project
 @app.route('/api/projects/<int:project_id>', methods = ['DELETE'])
 def delete_project(project_id):
@@ -608,13 +615,21 @@ def get_project_schedule(project_id):
             for assign in assignments:
                   t =  assign.task
                   if t.start and t.end:
+                        resource_list = []
+                        for res_assign in t.resource_assignments:
+                              resource = Resource.query.get(res_assign.resource_id)
+                              if resource:
+                                    resource_list.append(f"{resource.name} ({res_assign.quantity})")
+                        resources_str = ", ".join(resource_list) if resource_list else "No resource assigned"
+
                         emp_tasks.append({
                               "task_id": t.id,
                               "task_name": t.name,
                               "start": t.start,
                               "end": t.end,
                               "allocation": assign.allocation,
-                              "include_weekends": t.include_weekends    
+                              "include_weekends": t.include_weekends  ,
+                              "resources": resources_str
                         })
                   
             schedule_data.append({
