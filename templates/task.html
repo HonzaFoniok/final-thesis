@@ -34,7 +34,7 @@
     <div id="main-gantt-view" style="display: flex; align-items: stretch; margin-top: 20px; height: 75vh; width: 100%;">
 
         <div id="left-panel"
-            style="width: 40%; min-width: 400px; display: flex; flex-direction: column; overflow-x: auto;">
+            style="width: 40%; min-width: 400px; display: flex; flex-direction: column;">
             <div id="table" style="flex: 1;"></div>
         </div>
 
@@ -444,17 +444,30 @@
                         view_mode: 'Day',
                         language: 'en',
 
-                        //my own design of the Gantt window 
+                        //my own updated design of the Gantt tooltip window 
                         custom_popup_html: function (task) {
                             const empText = task.employees ? task.employees : '<span style="color:#aaa;">No employee assigned</span>';
                             const resText = task.resources ? task.resources : '<span style="color:#aaa;">No resource assigned</span>';
+                            const startDate = new Date(task._start || task.start);
+                            const endDate = new Date(task._end || task.end);
+                            const formattedStart = `${startDate.getDate()}. ${startDate.getMonth() + 1}. ${startDate.getFullYear()}`;
 
+                            // fixing Gantt adding one more day
+                            const realEndDate = new Date(endDate);
+                            realEndDate.setDate(realEndDate.getDate() - 1);
+                            const formattedEnd = `${realEndDate.getDate()}. ${realEndDate.getMonth() + 1}. ${realEndDate.getFullYear()}`;
+                            const durationDays = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
+
+                            // Skloňování dnů (1 den, 2-4 dny, 5+ dní)
+                            let durationText = `${durationDays} days`;
+                            if (durationDays === 1) durationText = '1 day';
+                            //else if (durationDays >= 2 && durationDays <= 4) durationText = `${durationDays} dny`;
                             return `
-                        <div style="padding: 10px; min-width: 180px;">
-                            <h5 style="margin: 0 0 8px 0; color: white; font-size: 15px;">${task.name}</h5>
-                            
-                            <p style="margin: 0 0 8px 0; font-size: 12px; color: #ccc;">
-                                <strong>Date: </strong>${task.start} - ${task.end} //UPDATE
+                            <div style="padding: 12px; background: #333333; color: white; border-radius: 6px; min-width: 200px; font-family: sans-serif; box-shadow: 0 4px 6px rgba(0,0,0,0.3);">
+                                <h4 style="margin: 0 0 8px 0; font-size: 16px; color: #ffffff;">${task.name}</h4>
+                                <p style="margin: 0 0 10px 0; font-size: 13px; color: #cccccc; line-height: 1.4;">
+                                <strong>Date:</strong> ${formattedStart} - ${formattedEnd}<br>
+                                <strong>Length of task:</strong> ${durationText}
                             </p>
                             
                             <div style="background: rgba(255,255,255,0.1); padding: 6px; border-radius: 4px; margin-bottom: 5px;">
@@ -677,11 +690,11 @@
                     if (typeof renderGantt === "function") renderGantt();
                     loadScheduleTable();
                 } else {
-                    alert("Chyba při vytváření úkolu na serveru.");
+                    alert("Error creating task on server.");
                 }
             } catch (err) {
                 console.error("Error:", err);
-                alert("Chyba komunikace se serverem.");
+                alert("Server communication error.");
             }
         }
 
@@ -782,9 +795,10 @@
         function switchMainView(view) {
             const ganttView = document.getElementById('main-gantt-view');
             const scheduleView = document.getElementById('schedule-table-view');
-
             const btnGantt = document.getElementById('btn-view-gantt');
             const btnTable = document.getElementById('btn-view-table');
+            const btnCpm = document.getElementById('btn-toggle-cpm');
+            const selectView = document.getElementById('gantt-view-mode');
 
             if (view === 'gantt') {
                 ganttView.style.display = 'flex';
@@ -798,6 +812,15 @@
                 btnTable.style.background = 'transparent';
                 btnTable.style.color = '#4b5563';
                 btnTable.style.boxShadow = 'none';
+
+                //Gantt button controls activation
+                btnCpm.disabled = false;
+                btnCpm.style.opacity = '1';
+                btnCpm.style.cursor = 'pointer';
+
+                selectView.disabled = false;
+                selectView.style.opacity = '1';
+                selectView.style.cursor = 'pointer';
             } else {
                 ganttView.style.display = 'none';
                 scheduleView.style.display = 'block';
@@ -811,7 +834,15 @@
                 btnGantt.style.color = '#4b5563';
                 btnGantt.style.boxShadow = 'none';
 
-                // loading data from backend
+                //deactivate gantt controls
+                btnCpm.disabled = true;
+                btnCpm.style.opacity = '0.4';
+                btnCpm.style.cursor = 'not-allowed';
+
+                selectView.disabled = true;
+                selectView.style.opacity = '0.4';
+                selectView.style.cursor = 'not-allowed';
+                // loading calendar data from backend
                 loadScheduleTable();
             }
         }
@@ -891,10 +922,18 @@
                                 }
 
                                 cellContent += `
-                            <div style="background: #e1f0fa; color: #0078d7; border-left: 3px solid #0095DB; border-radius: 2px; padding: 4px; margin-bottom: 3px; font-size: 11px; font-weight: 500; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" 
-                                 title="Detail úkolu: ${task.task_name}"
-                                 onclick="event.stopPropagation(); openResourceModal(${task.task_id})">
-                                ${task.task_name}
+                            <div class="custom-tooltip">
+                                <div style="background: #e1f0fa; color: #0078d7; border-left: 3px solid #0095DB; border-radius: 2px; padding: 4px; margin-bottom: 3px; font-size: 11px; font-weight: 500; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" 
+                                     onclick="event.stopPropagation(); openResourceModal(${task.task_id})">
+                                    ${task.task_name}
+                                </div>
+                                <div class="tooltip-text">
+                                    <div style="font-size: 13px; color: #ffffff; margin-bottom: 6px;"><strong>${task.task_name}</strong></div>
+                                    <div style="background: rgba(255,255,255,0.1); padding: 4px; border-radius: 4px;">
+                                        <div style="color: #93c5fd; margin-bottom: 2px;"><strong>Resources:</strong></div>
+                                        <div style="color: #cccccc;">${task.resources}</div>
+                                    </div>
+                                </div>
                             </div>`;
                             }
                         });
