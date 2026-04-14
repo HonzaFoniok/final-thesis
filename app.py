@@ -1,6 +1,6 @@
 from flask import Flask, request, jsonify, render_template
 from sqlalchemy.exc import IntegrityError
-from datetime import datetime
+from datetime import datetime, timedelta
 import os
 
 from models import db, Task, Resource, Project, Employee, TaskEmployee, TaskResource
@@ -60,7 +60,10 @@ def create_project():
                   db.session.add(task)
 
             db.session.commit()
-            return jsonify({'message' : 'Project created', 'id' : new_project.id}), 201
+            return jsonify({'message' : 'Project created', 
+                            'id' : new_project.id,
+                            'edit_token': new_project.edit_token
+                            }), 201
       
       #unique name of project
       except IntegrityError:
@@ -597,15 +600,18 @@ def delete_employee(emp_id):
 #route for the great grand table aka schedule
 @app.route('/api/projects/<int:project_id>/schedule', methods = ['GET'])
 def get_project_schedule(project_id):
-      tasks = Task.query.filter(Task.project_id == project_id, Task.start != "", Task.end != "").all()
-      if not tasks:
-            return jsonify({"status": "empty", "message": "No scheduled tasks found."})
-      
-      start_dates = [datetime.strptime(task.start, '%Y-%m-%d').date() for task in tasks]
-      end_dates = [datetime.strptime(task.end, '%Y-%m-%d').date() for task in tasks]
-      min_date = min(start_dates)
-      max_date = max(end_dates)
       employees = Employee.query.filter_by(project_id = project_id).all()
+      
+      tasks = Task.query.filter(Task.project_id == project_id, Task.start != "", Task.end != "").all()
+
+      if tasks:
+            start_dates = [datetime.strptime(task.start, '%Y-%m-%d').date() for task in tasks]
+            end_dates = [datetime.strptime(task.end, '%Y-%m-%d').date() for task in tasks]
+            min_date = min(start_dates)
+            max_date = max(end_dates)
+      else:
+            min_date = datetime.now().date()
+            max_date = min_date + timedelta(days=13) # or week?
       schedule_data = []
 
       #find for each employee his tasks
@@ -615,12 +621,9 @@ def get_project_schedule(project_id):
             for assign in assignments:
                   t =  assign.task
                   if t.start and t.end:
-                        resource_list = []
-                        for res_assign in t.resource_assignments:
-                              resource = Resource.query.get(res_assign.resource_id)
-                              if resource:
-                                    resource_list.append(f"{resource.name} ({res_assign.quantity})")
-                        resources_str = ", ".join(resource_list) if resource_list else "No resource assigned"
+                        # loading data for tooltip
+                        res_list = [f"{r.resource.name}" for r in t.resource_assignments if r.resource]
+                        res_str = ", ".join(res_list) if res_list else "No resource assigned"
 
                         emp_tasks.append({
                               "task_id": t.id,
@@ -628,8 +631,8 @@ def get_project_schedule(project_id):
                               "start": t.start,
                               "end": t.end,
                               "allocation": assign.allocation,
-                              "include_weekends": t.include_weekends  ,
-                              "resources": resources_str
+                              "include_weekends": t.include_weekends,
+                              "resources": res_str   
                         })
                   
             schedule_data.append({

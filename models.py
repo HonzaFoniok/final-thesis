@@ -1,5 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime, date
+import uuid
 
 db = SQLAlchemy()
 
@@ -8,6 +9,8 @@ class Project(db.Model):
     #attributes for projects
     id = db.Column(db.Integer, primary_key = True)
     name = db.Column(db.String(100), nullable = False, unique = True)
+    #added edit token for authentication
+    edit_token = db.Column(db.String(36), unique=True, nullable=False, default=lambda: str(uuid.uuid4()))
 
     #relations
     employees = db.relationship('Employee', backref='project', lazy=True, cascade="all, delete-orphan")
