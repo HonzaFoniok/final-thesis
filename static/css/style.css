@@ -319,3 +319,51 @@ body.show-cpm .bar-wrapper.critical-path .bar-progress { fill: #bd2130 !importan
 .resource-row input:focus { border-color: #0095DB; }
 
 /* ------------------ */
+
+/* ----- CUSTOM TOOL TIP ----- */
+/*for schedule table*/
+.custom-tooltip {
+    position: relative;
+    display: block;
+}
+
+.custom-tooltip .tooltip-text {
+    visibility: hidden;
+    width: max-content;
+    max-width: 220px;
+    background-color: #333333;
+    color: #fff;
+    text-align: left;
+    border-radius: 6px;
+    padding: 10px;
+    position: absolute;
+    z-index: 9999;
+    bottom: 125%; /* showing over task */
+    left: 50%;
+    transform: translateX(-50%);
+    opacity: 0;
+    transition: opacity 0.2s, transform 0.2s;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+    font-size: 12px;
+    font-weight: normal;
+    white-space: normal; 
+    pointer-events: none; /* does not block mouse clicking */
+}
+
+.custom-tooltip .tooltip-text::after {
+    content: "";
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    margin-left: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: #333333 transparent transparent transparent;
+}
+
+.custom-tooltip:hover .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+    transform: translateX(-50%) translateY(-2px);
+}
+/* --------------------------- */ 
