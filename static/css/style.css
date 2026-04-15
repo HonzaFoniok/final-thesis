@@ -137,6 +137,20 @@ h1 {
     background-color: #dc3545;
     color: white;
 }
+
+.btn-share {
+    background-color: #10b981;
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.btn-share:hover {
+    background-color: #059669; 
+}
 /* ------------------- */
 
 /* ----- FORMS & INPUTS ----- */
@@ -252,6 +266,7 @@ body.show-cpm .bar-wrapper.critical-path .bar-progress { fill: #bd2130 !importan
     display: flex;
     justify-content: space-between;
     align-items: center;
+    flex-wrap: nowrap;
     margin-bottom: 20px;
     background: white;
     padding: 12px 20px;
@@ -259,7 +274,12 @@ body.show-cpm .bar-wrapper.critical-path .bar-progress { fill: #bd2130 !importan
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     border: 1px solid #e5e7eb;
 }
-.toolbar-group { display: flex; gap: 12px; align-items: center; }
+
+.toolbar-group { 
+    display: flex; 
+    align-items: center;
+    gap: 15px; 
+}
 
 .view-select {
     padding: 8px 12px;
