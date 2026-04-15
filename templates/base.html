@@ -20,27 +20,26 @@
     const urlParams = new URLSearchParams(window.location.search);
     let token = urlParams.get('token');
 
-    // 1. Pokud je token v URL, uložíme ho do "trezoru" v kartě prohlížeče
+    // adding token to storage
     if (token) {
         sessionStorage.setItem('project_admin_token', token);
     } else {
-        // 2. Pokud v URL není, zkusíme ho vytáhnout z trezoru
+        // taking token from storage, if not in url
         token = sessionStorage.getItem('project_admin_token');
         
-        // 3. Pokud jsme ho v paměti našli, doplníme ho zpět do URL adresy
-        // (Tím zajistíme, že admin link zůstane v adresním řádku)
+        // adding token back to url, if found
         if (token && window.location.pathname.includes('/project/')) {
             urlParams.set('token', token);
             window.location.search = urlParams.toString();
         }
     }
 
-    // 4. Pomocná funkce, kterou budou volat ostatní stránky (Gantt, Resources, ...)
+    // helper function used by other URLs
     window.getEditToken = function() {
         return sessionStorage.getItem('project_admin_token') || '';
     };
 
-    // 5. Automatické opravování všech odkazů na stránce
+    // automaticly change all tokens
     document.addEventListener("DOMContentLoaded", () => {
         const activeToken = window.getEditToken();
         if (activeToken) {
@@ -53,6 +52,13 @@
                     }
                 } catch (e) {}
             });
+        }
+        else {
+            // view only mode - hiding dashboard button
+            const dashboardLink = document.getElementById('nav-dashboard');
+            if (dashboardLink) {
+                dashboardLink.style.display = 'none';
+            }
         }
     });
 })();
@@ -67,7 +73,7 @@
             {% endif %}
         </div>
         <div class="nav-links">
-            <a href="/" title="Back to projects">Dashboard</a>
+            <a href="/" id="nav-dashboard" >Dashboard</a>
             {% if project %}
             <a href="/project/{{ project.id }}/tasks">Gantt</a>
             <a href="/project/{{ project.id }}/resources">Resources</a>
