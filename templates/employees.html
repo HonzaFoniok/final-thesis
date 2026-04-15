@@ -5,11 +5,11 @@
         <h1>Employees list</h1>
 
         <div class="inline-form-row">
-    <input type="text" id="emp-name" placeholder="Name (e.g. John Doe)">
-    <input type="text" id="emp-role" placeholder="Role (e.g. Tester)">
-    <input type="number" id="emp-cap" value="1">
-    <button class="btn btn-add" onclick="addEmployee()">Add employee</button>
-</div>
+            <input type="text" id="emp-name" placeholder="Name (e.g. John Doe)">
+            <input type="text" id="emp-role" placeholder="Role (e.g. Tester)">
+            <input type="number" id="emp-cap" value="1">
+            <button class="btn btn-add" onclick="addEmployee()">Add employee</button>
+        </div>
 
     <div id="employees-table"></div>
 </div>
@@ -21,6 +21,16 @@
     const PROJECT_ID = {{ project.id }}; // id from Python
     let grid;
 
+    const urlParams = new URLSearchParams(window.location.search);
+    //const editToken = urlParams.get('token');
+    const editToken = window.getEditToken();
+
+    document.addEventListener("DOMContentLoaded", () => {
+        if (!editToken) {
+            const btnAdd = document.getElementById('btn-add');
+            if (btnAdd) btnAdd.style.display = 'none';
+        }
+    });
     // Init of Grid.js table
     function initGrid() {
         grid = new gridjs.Grid({
@@ -58,9 +68,17 @@
 
         const res = await fetch('/api/employees', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json',
+                        //'X-Edit-Token': editToken || ''
+                        'X-Edit-Token': window.getEditToken()
+             },
             body: JSON.stringify({ project_id: PROJECT_ID, name: name, role: role, capacity: cap })
         });
+
+        if (response.status === 403) {
+            alert("You do not have administrator rights to this project.");
+            return;
+        }
 
         if (res.ok) {
             document.getElementById('emp-name').value = '';
@@ -76,7 +94,7 @@
     async function deleteEmployee(id) {
         if (!confirm("Are you sure you want to delete this person?")) return;
         
-        const res = await fetch(`/api/employees/${id}`, { method: 'DELETE' });
+        const res = await fetch(`/api/employees/${id}`, { method: 'DELETE' , headers: { 'X-Edit-Token': window.getEditToken() } });
         if (res.ok) {
             grid.forceRender();
         } else {

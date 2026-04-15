@@ -18,3 +18,7 @@ instance/
 #Theory and literature
 Knihy/
 Theory/
+
+#Helper functions and sandbox
+sandbox.py
+utils/generate_qr.py

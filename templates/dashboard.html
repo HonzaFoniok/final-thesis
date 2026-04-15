@@ -35,11 +35,12 @@
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ name: name })
                     });
-                    
+                    const data = await response.json();
                     if (response.ok) {
-                        window.location.reload(); 
+                        //window.location.reload(); 
+                        window.location.href = `/project/${data.id}/tasks?token=${data.edit_token}`;
                     } else {
-                        alert("Encoutered error while creating this project.");
+                        alert(data.error || "Encoutered error while creating this project.");
                     }
                 } catch (err) {
                     console.error("Error:", err);

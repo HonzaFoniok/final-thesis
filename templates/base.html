@@ -1,42 +1,110 @@
 <!doctype html>
 <html lang="cs">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>KPVGantt</title>
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>KPVGantt</title>
+
+    <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
+    <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+
+<body>
+    <script>
+(function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    let token = urlParams.get('token');
+
+    // 1. Pokud je token v URL, uložíme ho do "trezoru" v kartě prohlížeče
+    if (token) {
+        sessionStorage.setItem('project_admin_token', token);
+    } else {
+        // 2. Pokud v URL není, zkusíme ho vytáhnout z trezoru
+        token = sessionStorage.getItem('project_admin_token');
         
-        <link href="https://unpkg.com/gridjs/dist/theme/mermaid.min.css" rel="stylesheet" />
-        <script src="https://unpkg.com/gridjs/dist/gridjs.umd.js"></script>
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.css" rel="stylesheet" >
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/frappe-gantt/0.6.1/frappe-gantt.min.js"></script>
+        // 3. Pokud jsme ho v paměti našli, doplníme ho zpět do URL adresy
+        // (Tím zajistíme, že admin link zůstane v adresním řádku)
+        if (token && window.location.pathname.includes('/project/')) {
+            urlParams.set('token', token);
+            window.location.search = urlParams.toString();
+        }
+    }
 
-        <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    </head>
+    // 4. Pomocná funkce, kterou budou volat ostatní stránky (Gantt, Resources, ...)
+    window.getEditToken = function() {
+        return sessionStorage.getItem('project_admin_token') || '';
+    };
 
-    <body>
-        <nav class="navbar">
-            <div class="nav-brand">
-                KPVGantt 
-                {% if project %}
-                <span style="color: rgba(255,255,255,0.5);">|</span> <span class="project-name">Project: {{ project.name }}</span>
-                {% endif %}
-            </div>
-            <div class="nav-links">
-                <a href="/" title="Back to projects">Dashboard</a>
-                {% if project %}
-                <a href="/project/{{ project.id }}/tasks">Gantt</a>
-                <a href="/project/{{ project.id }}/resources">Resources</a>
-                <a href="/project/{{ project.id }}/employees">Employees</a>
-                {% endif %}
-            </div>
-        </nav>
+    // 5. Automatické opravování všech odkazů na stránce
+    document.addEventListener("DOMContentLoaded", () => {
+        const activeToken = window.getEditToken();
+        if (activeToken) {
+            document.querySelectorAll('a').forEach(link => {
+                try {
+                    const url = new URL(link.href);
+                    if (url.origin === window.location.origin && url.pathname.includes('/project/')) {
+                        url.searchParams.set('token', activeToken);
+                        link.href = url.toString();
+                    }
+                } catch (e) {}
+            });
+        }
+    });
+})();
+</script>
 
-        <main>
-            {% block content %}
-            {% endblock %}
-        </main>
+    <nav class="navbar">
+        <div class="nav-brand">
+            KPVGantt
+            {% if project %}
+            <span style="color: rgba(255,255,255,0.5);">|</span> <span class="project-name">Project: {{ project.name
+                }}</span>
+            {% endif %}
+        </div>
+        <div class="nav-links">
+            <a href="/" title="Back to projects">Dashboard</a>
+            {% if project %}
+            <a href="/project/{{ project.id }}/tasks">Gantt</a>
+            <a href="/project/{{ project.id }}/resources">Resources</a>
+            <a href="/project/{{ project.id }}/employees">Employees</a>
+            {% endif %}
+        </div>
+    </nav>
 
-        {% block scripts %}
+    <main>
+        {% block content %}
         {% endblock %}
-    </body>    
+    </main>
+
+    {% block scripts %}
+        <script>
+            document.addEventListener("DOMContentLoaded", () => {
+                const urlParams = new URLSearchParams(window.location.search);
+                const token = urlParams.get('token');
+
+                if (token) {
+                        // find all links
+                        const navLinks = document.querySelectorAll('.nav-link, a[href*="/project/"]');
+                        
+                        // add token to each link (if not done allready)
+                    navLinks.forEach(link => {  
+                        try {
+                            const url = new URL(link.href);
+                            url.searchParams.set('token', token);
+                            link.href = url.toString();
+                        }  
+                        catch (e) {
+                        }
+                    });
+                }
+            });
+        </script>
+    {% endblock %}
+</body>
+
 </html>

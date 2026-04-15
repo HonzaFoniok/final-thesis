@@ -7,6 +7,16 @@ from models import db, Task, Resource, Project, Employee, TaskEmployee, TaskReso
 from utils.cpm import topological_sort, calculate_critical_path
 from utils.utils import normalize_date, shift_dependent_tasks, calculate_delta, add_custom_days
 
+#helper function for authentication
+def is_authorized(project_id):
+      #reading the token value from incoming requirement
+      token = request.headers.get('X-Edit-Token')
+      project = Project.query.get(project_id)
+
+      if project and project.edit_token == token:
+            return True
+      return False
+
 # ----- INIT ------
 app = Flask(__name__, instance_relative_config=True)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(app.instance_path, 'database.sqlite')
@@ -182,6 +192,10 @@ def update_task_assignments(task_id):
       if not task:
             return jsonify({"error" : "Task was not found"}), 404
       
+      #added for authentication
+      if not is_authorized(task.project_id):
+            return jsonify({'error': 'Read-only access. Invalid or missing token.'}), 403
+
       try:
             new_assignments = {}
             for key, value in request.form.items():
@@ -243,13 +257,17 @@ def update_task_assignments(task_id):
             db.session.rollback()
             return jsonify({"error" : str(e)}), 500
 
-#POST - create new task
+#create new task
 @app.route('/api/tasks/', methods = ['POST'])
 def create_task():
       data = request.get_json()
       if not data or 'project_id' not in data:
             return jsonify({'error' : 'Project ID missing'}), 400
-       
+      
+      #added for authentication
+      if not is_authorized(data['project_id']):
+            return jsonify({'error': 'Read-only access. Invalid or missing token.'}), 403
+
       task = Task(
             project_id = data['project_id'],
             name = "", start = "", end = "", progress = 0, dependencies = ""
@@ -259,11 +277,16 @@ def create_task():
       db.session.commit()
       return jsonify({'message' : 'Task created', 'id' : task.id}), 201
 
-#PATCH - modify an item
+#modify task
 @app.route('/api/tasks/', methods = ['PATCH'])
 def update_task_patch():
       data = request.get_json()
       task = Task.query.get_or_404(data['id'])
+
+      #added for authentication
+      if not is_authorized(task.project_id):
+            return jsonify({'error': 'Read-only access. Invalid or missing token.'}), 403
+      
       old_end = task.end
 
       if 'name' in data: task.name = data['name']
@@ -319,6 +342,11 @@ def update_task_patch():
 @app.route('/api/tasks/quick-add', methods = ['POST'])
 def quick_add_task():
       data = request.get_json()
+
+      #added for authentication
+      if not is_authorized(data['project_id']):
+            return jsonify({'error': 'Read-only access. Invalid or missing token.'}), 403
+      
       #normalize_date(date_str)
       project_id = data.get('project_id')
       name = data.get('name')
@@ -379,6 +407,11 @@ def quick_add_task():
 @app.route('/api/tasks/<int:task_id>', methods =['DELETE'])
 def delete_task(task_id):
       task = Task.query.get_or_404(task_id)
+
+      #added for authentication
+      if not is_authorized(task.project_id):
+            return jsonify({'error': 'Read-only access. Invalid or missing token.'}), 403
+
       db.session.delete(task)
       db.session.commit()
       return '', 204
@@ -399,6 +432,11 @@ def get_resources():
 @app.route('/api/resources/', methods=['POST'])
 def create_resource():
       data = request.get_json()
+      
+      #added for authentication
+      if not is_authorized(data['project_id']):
+            return jsonify({'error': 'Read-only access. Invalid or missing token.'}), 403
+
       if not data or 'project_id' not in data:
             return jsonify({'error' : 'Project ID missing'}), 400
       
@@ -416,6 +454,11 @@ def create_resource():
 @app.route('/api/resources/', methods = ['PATCH'])
 def update_resource():
       data = request.get_json()
+
+      #added for authentication
+      if not is_authorized(data['project_id']):
+            return jsonify({'error': 'Read-only access. Invalid or missing token.'}), 403
+      
       resource = Resource.query.get_or_404(data['id'])
 
       if 'name' in data: resource.name = data['name']
@@ -435,6 +478,11 @@ def update_resource():
 @app.route('/api/resources/<int:resource_id>', methods =['DELETE'])
 def delete_resource(resource_id):
       resource = Resource.query.get_or_404(resource_id)
+
+      #added for authentication
+      if not is_authorized(resource.project_id):
+            return jsonify({'error': 'Read-only access. Invalid or missing token.'}), 403
+      
       db.session.delete(resource)
       db.session.commit()
       return '', 204
@@ -459,6 +507,11 @@ def get_material_modal(task_id):
 @app.route('/api/tasks/<int:task_id>/material-assignments', methods = ['POST'])
 def update_task_material_assignments(task_id): #RENAME maybe? 
       task = Task.query.get(task_id)
+
+      #added for authentication
+      if not is_authorized(task.project_id):
+            return jsonify({'error': 'Read-only access. Invalid or missing token.'}), 403
+      
       if not task:
             return jsonify({"error" : "Task was not found"}), 404
 
@@ -560,6 +613,11 @@ def get_employees():
 @app.route('/api/employees', methods = ['POST'])
 def add_employee():
       data = request.get_json()
+
+      #added for authentication
+      if not is_authorized(data['project_id']):
+            return jsonify({'error': 'Read-only access. Invalid or missing token.'}), 403
+      
       project_id = data.get('project_id')
       name = data.get('name')
       role = data.get('role', '')
@@ -585,6 +643,10 @@ def add_employee():
 @app.route('/api/employees/<int:emp_id>', methods = ['DELETE'])
 def delete_employee(emp_id):
       emp = Employee.query.get(emp_id)
+      #added for authentication
+      if not is_authorized(emp.project_id):
+            return jsonify({'error': 'Read-only access. Invalid or missing token.'}), 403
+
       if not emp:
             return jsonify({"error" : "Employee was not found"}), 404
       
@@ -622,9 +684,18 @@ def get_project_schedule(project_id):
                   t =  assign.task
                   if t.start and t.end:
                         # loading data for tooltip
-                        res_list = [f"{r.resource.name}" for r in t.resource_assignments if r.resource]
-                        res_str = ", ".join(res_list) if res_list else "No resource assigned"
+                        #res_list = [f"{r.resource.name}" for r in t.resource_assignments if r.resource]
+                        #res_str = ", ".join(res_list) if res_list else "No resource assigned"
 
+                        # loading data for tooltip (bezpečnější verze)
+                        resource_list = []
+                        for res_assign in t.resource_assignments:
+                              # Najdeme zdroj ručně podle ID
+                              res = Resource.query.get(res_assign.resource_id)
+                              if res:
+                                    resource_list.append(res.name)
+                        
+                        res_str = ", ".join(resource_list) if resource_list else "No resource assigned"
                         emp_tasks.append({
                               "task_id": t.id,
                               "task_name": t.name,
