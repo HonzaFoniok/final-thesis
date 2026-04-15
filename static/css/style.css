@@ -310,6 +310,11 @@ body.show-cpm .bar-wrapper.critical-path .bar-progress { fill: #bd2130 !importan
 .close-btn:hover { color: #dc3545; }
 .modal-footer { margin-top: 25px; text-align: right; border-top: 1px solid #e5e7eb; padding-top: 15px; }
 
+.modal-body {
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
 .resource-row {
     display: flex; justify-content: space-between; align-items: center;
     padding: 12px; background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 6px; margin-bottom: 8px;
