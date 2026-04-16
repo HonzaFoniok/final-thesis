@@ -95,18 +95,18 @@
             })
         });
 
-        if (response.status === 403) {
-                alert("You do not have administrator rights to this project.");
-                return;
-            }
-
         if (res.ok) {
             document.getElementById('res-name').value = '';
             document.getElementById('res-amount').value = '1';
             document.getElementById('res-cost').value = '0';
             grid.forceRender(); 
-        } else {
-            alert("Error saving to database! DEBUG PRINT"); //DEBUG PRINT DELETE
+        } 
+        else if (response.status === 403) {
+                alert("You do not have administrator rights to this project.");
+                return;
+        }
+        else {
+            alert("Error saving to database!");
         }
     }
 

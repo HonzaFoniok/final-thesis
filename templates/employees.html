@@ -75,17 +75,17 @@
             body: JSON.stringify({ project_id: PROJECT_ID, name: name, role: role, capacity: cap })
         });
 
-        if (response.status === 403) {
-            alert("You do not have administrator rights to this project.");
-            return;
-        }
-
         if (res.ok) {
             document.getElementById('emp-name').value = '';
             document.getElementById('emp-role').value = '';
             document.getElementById('emp-cap').value = '1';
             grid.forceRender();
-        } else {
+        }
+        else if (response.status === 403) {
+                alert("You do not have administrator rights to this project.");
+                return;
+        }
+        else {
             alert("Encoutered error while saving!");
         }
     }
