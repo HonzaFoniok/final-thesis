@@ -80,8 +80,7 @@
             document.getElementById('emp-role').value = '';
             document.getElementById('emp-cap').value = '1';
             grid.forceRender();
-        }
-        else if (response.status === 403) {
+        } else if (res.status === 403) {
                 alert("You do not have administrator rights to this project.");
                 return;
         }
@@ -97,6 +96,9 @@
         const res = await fetch(`/api/employees/${id}`, { method: 'DELETE' , headers: { 'X-Edit-Token': window.getEditToken() } });
         if (res.ok) {
             grid.forceRender();
+        } else if (res.status === 403) {
+            alert("You do not have administrator rights to this project.");
+            return;
         } else {
             alert("Undable to delete.");
         }

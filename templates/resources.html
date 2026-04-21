@@ -100,12 +100,10 @@
             document.getElementById('res-amount').value = '1';
             document.getElementById('res-cost').value = '0';
             grid.forceRender(); 
-        } 
-        else if (response.status === 403) {
+        } else if (res.status === 403) {
                 alert("You do not have administrator rights to this project.");
                 return;
-        }
-        else {
+        } else {
             alert("Error saving to database!");
         }
     }
@@ -115,7 +113,10 @@
         
         const res = await fetch(`/api/resources/${id}`, { method: 'DELETE' , headers: { 'X-Edit-Token': window.getEditToken() } }); 
         if (res.ok) {
-            grid.forceRender();
+            grid.forceRender();    
+        } else if (res.status === 403) {
+                alert("You do not have administrator rights to this project.");
+                return;
         } else {
             alert("Failed to delete.");
         }
