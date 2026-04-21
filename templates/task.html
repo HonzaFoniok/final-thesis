@@ -107,17 +107,24 @@
                     style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;">
             </div>
 
-            <div style="display: flex; gap: 10px;">
-                <div style="flex: 1;">
-                    <label style="font-size: 13px; font-weight: bold; color: #555;">Start</label>
-                    <input type="text" id="quick-add-start"
-                        style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;">
-                </div>
-                <div style="flex: 1;">
-                    <label style="font-size: 13px; font-weight: bold; color: #555;">End</label>
-                    <input type="text" id="quick-add-end"
-                        style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;">
-                </div>
+        <div style="display: flex; gap: 15px; margin-bottom: 15px;">
+        
+        <div style="flex: 1;">
+            <label style="display: block; font-size: 13px; color: #555; margin-bottom: 5px;">Start</label>
+            <input type="text" id="quick-add-start" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+        </div>
+        
+        <div style="flex: 1;">
+            <label style="display: block; font-size: 13px; color: #555; margin-bottom: 5px;">End</label>
+            <input type="text" id="quick-add-end" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
+        </div>
+
+    </div> <div style="margin-bottom: 15px;">
+        <label style="display: block; font-size: 13px; color: #555; margin-bottom: 5px;">Resource assigned</label>
+        <select id="quick-add-resource" style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; background-color: white;">
+            <option value="">-- No resource --</option>
+            </select>
+    </div>
             </div>
 
             <div class="modal-footer">
@@ -230,13 +237,17 @@
                 const taskId = row.cells[1].data;
 
                 // locking for read-only users
-
+                const hasToken = window.getEditToken() !== '';
+                const disabledAttr = hasToken ? '' : 'disabled';
+                const cursorStyle = hasToken ? 'pointer' : 'not-allowed';
+                const opacityStyle = hasToken ? '1' : '0.8';
                 // rendering checkbox
                 return gridjs.html(`
                 <input type="checkbox" 
                        ${isChecked} 
-                       style="cursor: pointer; width: 18px; height: 18px;"
-                       onchange="updateWeekendFlag(${taskId}, this.checked)">
+                        ${disabledAttr}
+                        style="cursor: ${cursorStyle}; opacity: ${opacityStyle}; width: 18px; height: 18px;"
+                        onchange="updateWeekendFlag(${taskId}, this.checked)">
             `);
             }
         },
@@ -557,7 +568,6 @@
                         const formattedEnd = `${realEndDate.getDate()}. ${realEndDate.getMonth() + 1}. ${realEndDate.getFullYear()}`;
                         const durationDays = Math.round((endDate - startDate) / (1000 * 60 * 60 * 24));
 
-                        // Skloňování dnů (1 den, 2-4 dny, 5+ dní)
                         let durationText = `${durationDays} days`;
                         if (durationDays === 1) durationText = '1 day';
                         //else if (durationDays >= 2 && durationDays <= 4) durationText = `${durationDays} dny`;
@@ -758,7 +768,7 @@
         }
     }
 
-    function openQuickAddModal(empId, empName, dateStr) {
+    async function openQuickAddModal(empId, empName, dateStr) {
         document.getElementById('quick-add-emp-id').value = empId;
         document.getElementById('quick-add-emp-name').textContent = empName;
         document.getElementById('quick-add-name').value = '';
@@ -767,6 +777,32 @@
         document.getElementById('quick-add-start').value = dateStr;
         document.getElementById('quick-add-end').value = dateStr;
 
+        const resourceSelect = document.getElementById('quick-add-resource'); 
+    
+        if (resourceSelect) {
+            // clearing old options
+            resourceSelect.innerHTML = '<option value="">-- No resource --</option>'; 
+
+            try {
+                const response = await fetch(`/api/resources?project_id=${currentProjectId}`, {
+                    headers: { 'X-Edit-Token': window.getEditToken() }
+                });
+                
+                if (response.ok) {
+                    const resources = await response.json();
+                    // creating new option and adding it to the window
+                    resources.forEach(res => {
+                        const option = document.createElement('option');
+                        option.value = res.id;
+                        option.textContent = res.name;
+                        resourceSelect.appendChild(option);
+                    });
+                }
+            } catch (err) {
+                console.error("Error while loading resources:", err);
+            }
+        }
+        
         document.getElementById('quick-add-modal').style.display = 'flex';
 
         setTimeout(() => document.getElementById('quick-add-name').focus(), 100);
@@ -781,7 +817,7 @@
         const name = document.getElementById('quick-add-name').value;
         const start = document.getElementById('quick-add-start').value;
         const end = document.getElementById('quick-add-end').value;
-
+        const selectedResourceId = document.getElementById('quick-add-resource').value;
         if (!name || !start || !end) {
             alert("Fill in the task name and both dates.");
             return;
@@ -790,13 +826,15 @@
         try {
             const response = await fetch('/api/tasks/quick-add', {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: { 'Content-Type': 'application/json', 'X-Edit-Token': window.getEditToken()
+            },
                 body: JSON.stringify({
                     project_id: currentProjectId,
                     employee_id: empId,
                     name: name,
                     start: start,
-                    end: end
+                    end: end,
+                    resource_id: selectedResourceId ? parseInt(selectedResourceId) : null
                 })
             });
 

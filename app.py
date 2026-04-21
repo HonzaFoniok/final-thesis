@@ -78,7 +78,7 @@ def create_project():
       #unique name of project
       except IntegrityError:
             db.session.rollback()
-            return jsonify({'error':f"Project with name {name} allready exists!"}), 400
+            return jsonify({'error':f"Project with name '{name}' allready exists!"}), 400
       
       except Exception as e:
             db.session.rollback()
@@ -393,6 +393,15 @@ def quick_add_task():
             )
 
             db.session.add(new_assignment)
+
+            res_id = data.get('resource_id')
+            if res_id:
+                  
+                  new_res_assign = TaskResource(
+                        task_id=task_to_use.id,
+                        resource_id=res_id
+                  )
+                  db.session.add(new_res_assign)
             db.session.commit()
 
             return jsonify({"status": "success", "task_id": task_to_use.id, "message": "Task created or updated!"})
@@ -666,6 +675,7 @@ def get_project_schedule(project_id):
       
       tasks = Task.query.filter(Task.project_id == project_id, Task.start != "", Task.end != "").all()
 
+      
       if tasks:
             start_dates = [datetime.strptime(task.start, '%Y-%m-%d').date() for task in tasks]
             end_dates = [datetime.strptime(task.end, '%Y-%m-%d').date() for task in tasks]
