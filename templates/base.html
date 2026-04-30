@@ -17,44 +17,17 @@
 <body>
     <script>
 (function() {
-    const urlParams = new URLSearchParams(window.location.search);
-    let token = urlParams.get('token');
+    // find if user has rigths to current project
+    const isAuthorized = {% if project and session.get('project_tokens', {}).get(project.id | string) %} true {% else %} false {% endif %};
 
-    // adding token to storage
-    if (token) {
-        sessionStorage.setItem('project_admin_token', token);
-    } else {
-        // taking token from storage, if not in url
-        token = sessionStorage.getItem('project_admin_token');
-        
-        // adding token back to url, if found
-        if (token && window.location.pathname.includes('/project/')) {
-            urlParams.set('token', token);
-            window.location.search = urlParams.toString();
-        }
-    }
-
-    // helper function used by other URLs
+    // fetch and checkbox might fall without this function
     window.getEditToken = function() {
-        return sessionStorage.getItem('project_admin_token') || '';
+        return isAuthorized ? "backend_session_active" : "";
     };
 
-    // automaticly change all tokens
+    // hiding dash and buttons in view-only mode
     document.addEventListener("DOMContentLoaded", () => {
-        const activeToken = window.getEditToken();
-        if (activeToken) {
-            document.querySelectorAll('a').forEach(link => {
-                try {
-                    const url = new URL(link.href);
-                    if (url.origin === window.location.origin && url.pathname.includes('/project/')) {
-                        url.searchParams.set('token', activeToken);
-                        link.href = url.toString();
-                    }
-                } catch (e) {}
-            });
-        }
-        else {
-            // view only mode - hiding dashboard button
+        if (!isAuthorized) {
             const dashboardLink = document.getElementById('nav-dashboard');
             if (dashboardLink) {
                 dashboardLink.style.display = 'none';

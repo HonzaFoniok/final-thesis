@@ -2,8 +2,30 @@
 
 #imports
 from datetime import datetime, timedelta
-from models import Task
+from models import Task, Project
+from flask import request, session
 
+#helper function for authentication
+def is_authorized(project_id):
+      project = Project.query.get(project_id)
+      if not project:
+            return False
+      
+      #trying to find token in header
+      token = request.headers.get('X-Edit-Token')
+      if token == "backend_session_active":
+        token = None
+      #token from admin URL
+      if not token:
+            token = request.args.get('token')
+      
+      #token from Flask Session
+      if not token:
+            saved_tokens = session.get('project_tokens', {})
+            token = saved_tokens.get(str(project_id))
+      
+      return project.edit_token == token
+                                     
 # translate dates (for CPM)
 def normalize_date(date_str):
       if not date_str or str(date_str) == "":
