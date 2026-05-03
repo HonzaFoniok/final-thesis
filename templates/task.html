@@ -174,34 +174,33 @@
 {% block scripts %}
 <script>
     const currentProjectId = parseInt("{{ project.id }}", 10);
-
-    //token for authentication from URL
-    const urlParams = new URLSearchParams(window.location.search);
-    //const editToken = urlParams.get('token');
-    const editToken = window.getEditToken();
     
-    //hiding the edits table for users with view-only rights 
+    //get token and ensure user is admin
+    const projectAdminToken = "{{ project.edit_token }}";
+    const isAdmin = {{ 'true' if is_admin else 'false' }};
+    window.getEditToken = function() {
+        return isAdmin ? projectAdminToken : "";
+    };
+
+    // hiding buttons for view-only users
     document.addEventListener("DOMContentLoaded", () => {
-            if (!editToken) {
-                const btnAdd = document.getElementById('btn-add-task');
-                const btnShare = document.getElementById('btn-share');
-                
-                // hiding buttons if they exist
-                if (btnAdd) btnAdd.style.display = 'none';
-                if (btnShare) btnShare.style.display = 'none';
-            }
-        });
+        if (!isAdmin) {
+            const btnAdd = document.getElementById('btn-add-task');
+            const btnShare = document.getElementById('btn-share');
+            
+            if (btnAdd) btnAdd.style.display = 'none';
+            if (btnShare) btnShare.style.display = 'none';
+        }
+    });
 
-    //functions for share modal
+    //adding token to share modal window
     function openShareModal() {
-        // base URL value
         const baseUrl = window.location.origin + window.location.pathname;
-
-        // adding generetated tokens 
-        document.getElementById('admin-link-input').value = baseUrl + "?token=" + editToken;
+        document.getElementById('admin-link-input').value = baseUrl + "?token=" + projectAdminToken;
         document.getElementById('viewer-link-input').value = baseUrl;
         document.getElementById('share-modal').style.display = 'flex';
     }
+
 
     //function for copying share link to clipboard
     function copyToClipboard(inputId) {

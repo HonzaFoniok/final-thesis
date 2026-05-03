@@ -26,22 +26,30 @@ def project_tasks(project_id):
       #if there is valid token in URL
       url_token = request.args.get('token')
       if url_token and is_authorized(project_id):
-            #saving permanently to session
+            # creating a session for 30 days and saving token to the session
+            #session.permanent = True
             if 'project_tokens' not in session:
                   session['project_tokens'] = {}
             tokens = session['project_tokens']
-            tokens[str('project_id')] = url_token
+            tokens[str(project_id)] = url_token
             session['project_tokens'] = tokens
             session.modified = True
 
             #redirect to URL without ' ?token=... '
-            return redirect(url_for('project_tasks', project_id=project_id))
+            return redirect(url_for('.project_tasks', project_id=project_id))
       
       project = Project.query.get(project_id)
     
       if not project:
             return "Project was not found", 404
-      return render_template('task.html', project_id=project_id, project=project)
+      
+      #gettting 'rights value' (e.g. admin or view only) from session
+      is_admin = False
+      tokens = session.get('project_tokens', {})
+      if str(project_id) in tokens:
+            is_admin = True
+
+      return render_template('task.html', project_id=project_id, project=project, is_admin=is_admin)
 
 @views_bp.route('/project/<int:project_id>/resources')
 def project_resources(project_id):
