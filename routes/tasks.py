@@ -357,8 +357,6 @@ def update_task_material_assignments(task_id): #RENAME maybe?
                   res = Resource.query.get(res_id) # res means resource
                   if not res: continue
 
-                  print(f"<DEBUG>: Resource '{res.name}' have type: '{res.resource_type}'")
-
                   #Material - such as cables, pins etc...
                   if res.resource_type == 'Material':
                         other_usages = TaskResource.query.filter(
@@ -446,6 +444,8 @@ def quick_add_task():
             return jsonify({"error" : "Missing required fields"}), 400
 
       try:
+            task_start_date = datetime.strptime(start, '%Y-%m-%d').date()
+            task_end_date = datetime.strptime(end, '%Y-%m-%d').date()
             #locating first emmpty row (without name and start)
             empty_task = Task.query.filter(
                   Task.project_id == project_id,
@@ -481,6 +481,66 @@ def quick_add_task():
             )
 
             db.session.add(new_assignment)
+
+            res_id = data.get('resource_id')
+            
+            if res_id:
+                  #value is 1.0
+                  req_qty = float(data.get('resource_quantity', 1.0)) 
+                  res = Resource.query.get(res_id)
+                  
+                  if res:
+                        # validation for material
+                        if res.resource_type == 'Material':
+                              other_usages = TaskResource.query.filter(
+                                    TaskResource.resource_id == res_id
+                              ).all()
+                              
+                              used_elsewhere = sum(u.quantity for u in other_usages if u.quantity)
+                              available = res.total_amount - used_elsewhere
+
+                              if req_qty > available:
+                                    db.session.rollback()
+                                    return jsonify({"error": f"Lack of material: '{res.name}'. Available only {available} {res.units}."}), 400
+
+                        # validation for equipment
+                        else:
+                              if req_qty > res.total_amount:
+                                    db.session.rollback()
+                                    return jsonify({"error": f"Lack of equipment '{res.name}'. Available only {res.total_amount} {res.units}."}), 400
+                              
+                              other_assignments = TaskResource.query.filter(
+                                    TaskResource.resource_id == res_id
+                              ).all()
+
+                              overlapping_sum = 0.0
+                              overlapping_tasks = []
+
+                              for other_assign in other_assignments:
+                                    other_task = other_assign.task
+                                    if not other_task.start or not other_task.end: continue
+
+                                    other_start = datetime.strptime(other_task.start, '%Y-%m-%d').date()
+                                    other_end = datetime.strptime(other_task.end, '%Y-%m-%d').date()
+            
+                                    if task_start_date <= other_end and other_start <= task_end_date:
+                                          allocation_val = getattr(other_assign, 'allocation', other_assign.quantity)
+                                          if allocation_val is not None:
+                                                overlapping_sum += float(allocation_val)
+                                          overlapping_tasks.append(other_task.name)
+
+                              if req_qty + overlapping_sum > res.total_amount:
+                                    db.session.rollback()
+                                    tasks_str = ", ".join(overlapping_tasks)
+                                    return jsonify({"error": f"Resource '{res.name}' does not have enough capacity! Already used in parallel task(s): {tasks_str} with capacity ({overlapping_sum})."}), 400
+                  
+                        #adding resource after succesfull validation
+                        new_res_assign = TaskResource(
+                              task_id=task_to_use.id,
+                              resource_id=res_id,
+                              quantity=req_qty
+                        )
+                        db.session.add(new_res_assign)
 
             res_id = data.get('resource_id')
             if res_id:

@@ -839,12 +839,14 @@
 
             if (response.ok) {
                 closeQuickAddModal();
-
                 grid.forceRender();
                 if (typeof renderGantt === "function") renderGantt();
                 loadScheduleTable();
             } else {
-                alert("Error creating task on server.");
+                const data = await response.json();
+                const errorMessage = data.error || "Error creating task on server.";
+
+                alert(errorMessage);
             }
         } catch (err) {
             console.error("Error:", err);
