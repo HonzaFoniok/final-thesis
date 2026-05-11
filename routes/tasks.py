@@ -412,6 +412,34 @@ def update_task_material_assignments(task_id): #RENAME maybe?
             print(f"<DEBUG> Error while saving material: {str(e)}")
             return jsonify({"error" : str(e)}), 500
 
+# ----- SCHEDULE VIEW -----
+
+@tasks_bp.route('/<int:task_id>/details', methods=['GET'])
+def get_task_details(task_id):
+    """
+      Gets complete task data, a list of all employees and resources
+      including their current assignment for UI purposes.
+    """
+    task = Task.query.get_or_404(task_id)
+    if not is_authorized(task.project_id):
+        return jsonify({'error': 'Read-only access.'}), 403
+
+    emps = Employee.query.all()
+    ress = Resource.query.all()
+    
+    # finding assigned resources
+    task_emps = {e.employee_id: e.allocation for e in TaskEmployee.query.filter_by(task_id=task_id).all()}
+    task_ress = {r.resource_id: r.quantity for r in TaskResource.query.filter_by(task_id=task_id).all()}
+    
+    return jsonify({
+        "id": task.id,
+        "name": task.name,
+        "start": task.start,
+        "end": task.end,
+        "employees": [{"id": e.id, "name": e.name, "alloc": task_emps.get(e.id, 0)} for e in emps],
+        "resources": [{"id": r.id, "name": r.name, "qty": task_ress.get(r.id, 0), "units": r.units if hasattr(r, 'units') else 'ks'} for r in ress]
+    })
+
 @tasks_bp.route('/quick-add', methods = ['POST'])
 def quick_add_task():
       """
@@ -558,3 +586,73 @@ def quick_add_task():
             db.session.rollback()
             print("Error during quick add:", str(e))
             return jsonify({"error": "Failed to create task and assign employee."}), 500
+      
+
+@tasks_bp.route('/<int:task_id>/comprehensive', methods=['PATCH'])
+def update_task_comprehensive(task_id):
+    """
+      Stores basic task, employee, and resource info.
+      If capacity is exceeded, the entire transaction is rolled back.   
+    """
+    task = Task.query.get_or_404(task_id)
+    if not is_authorized(task.project_id):
+        return jsonify({'error': 'Read-only access.'}), 403
+
+    data = request.get_json()
+
+    try:
+        # update of name and date
+        task.name = data.get('name', task.name)
+        if data.get('start'): task.start = normalize_date(data['start'])
+        if data.get('end'): task.end = normalize_date(data['end'])
+        
+        task_start_date = datetime.strptime(task.start, '%Y-%m-%d').date() if task.start else None
+        task_end_date = datetime.strptime(task.end, '%Y-%m-%d').date() if task.end else None
+
+        # employee capacity validation
+        new_emps = data.get('employees', {})
+        if task_start_date and task_end_date:
+            for emp_id_str, alloc in new_emps.items():
+                req_alloc = float(alloc)
+                other_assignments = TaskEmployee.query.filter(TaskEmployee.employee_id == int(emp_id_str), TaskEmployee.task_id != task_id).all() 
+                overlapping_sum = sum(float(oa.allocation) for oa in other_assignments if oa.task.start and oa.task.end and (task_start_date <= datetime.strptime(oa.task.end, '%Y-%m-%d').date() and datetime.strptime(oa.task.start, '%Y-%m-%d').date() <= task_end_date))
+
+                if req_alloc + overlapping_sum > 1.0:
+                    db.session.rollback()
+                    emp_name = Employee.query.get(int(emp_id_str)).name
+                    return jsonify({"error" : f"Employee '{emp_name}' overloaded! Max available: {max(0.0, round(1.0 - overlapping_sum, 2))} FTE"}), 400
+
+        # materials and resources capacity validation
+        new_res = data.get('resources', {})
+        if task_start_date and task_end_date:
+            for res_id_str, qty in new_res.items():
+                req_qty, res_id = float(qty), int(res_id_str)
+                res = Resource.query.get(res_id)
+                if not res: continue
+
+                if res.resource_type == 'Material':
+                    used_elsewhere = sum(u.quantity for u in TaskResource.query.filter(TaskResource.resource_id == res_id, TaskResource.task_id != task_id).all() if u.quantity)
+                    if req_qty > (res.total_amount - used_elsewhere):
+                        db.session.rollback()
+                        return jsonify({"error": f"Lack of material '{res.name}'. Available: {res.total_amount - used_elsewhere} {res.units}."}), 400
+                else:
+                    overlapping_sum = sum(float(getattr(oa, 'allocation', oa.quantity) or 0) for oa in TaskResource.query.filter(TaskResource.resource_id == res_id, TaskResource.task_id != task_id).all() if oa.task.start and oa.task.end and (task_start_date <= datetime.strptime(oa.task.end, '%Y-%m-%d').date() and datetime.strptime(oa.task.start, '%Y-%m-%d').date() <= task_end_date))
+                    if req_qty + overlapping_sum > res.total_amount:
+                        db.session.rollback()
+                        return jsonify({"error": f"Resource '{res.name}' capacity exceeded!"}), 400
+
+        # save the changes
+        TaskEmployee.query.filter_by(task_id=task_id).delete()
+        for emp_id_str, alloc in new_emps.items():
+            if float(alloc) > 0: db.session.add(TaskEmployee(task_id=task_id, employee_id=int(emp_id_str), allocation=float(alloc)))
+
+        TaskResource.query.filter_by(task_id=task_id).delete()
+        for res_id_str, qty in new_res.items():
+            if float(qty) > 0: db.session.add(TaskResource(task_id=task_id, resource_id=int(res_id_str), quantity=float(qty)))
+
+        db.session.commit()
+        return jsonify({"message": "Task completely updated!"}), 200
+
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({"error": str(e)}), 500
