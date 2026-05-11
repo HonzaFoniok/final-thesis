@@ -570,14 +570,6 @@ def quick_add_task():
                         )
                         db.session.add(new_res_assign)
 
-            res_id = data.get('resource_id')
-            if res_id:
-                  
-                  new_res_assign = TaskResource(
-                        task_id=task_to_use.id,
-                        resource_id=res_id
-                  )
-                  db.session.add(new_res_assign)
             db.session.commit()
 
             return jsonify({"status": "success", "task_id": task_to_use.id, "message": "Task created or updated!"})

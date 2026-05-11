@@ -242,6 +242,9 @@
             if (btnAdd) btnAdd.style.display = 'none';
             if (btnShare) btnShare.style.display = 'none';
         }
+        //automatic switch of view after reload
+        const savedView = localStorage.getItem('activeProjectView') || 'gantt';
+        switchMainView(savedView);
     });
 
     //adding token to share modal window
@@ -1029,6 +1032,9 @@
     });
 
     function switchMainView(view) {
+        //for refreshing and staying in the same view
+        localStorage.setItem('activeProjectView', view);
+
         const ganttView = document.getElementById('main-gantt-view');
         const scheduleView = document.getElementById('schedule-table-view');
         const btnGantt = document.getElementById('btn-view-gantt');
