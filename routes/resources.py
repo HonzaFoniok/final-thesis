@@ -20,8 +20,24 @@ def get_resources():
       project_id = request.args.get('project_id')
 
       if project_id:
-            resources = Resource.query.filter_by(project_id = project_id).all()
-            return jsonify([r.to_dict() for r in resources])
+            resources = Resource.query.filter_by(project_id=project_id).all()
+            result = []
+                  
+            for r in resources:
+                  r_dict = r.to_dict()
+                        
+                  # find remaining capacity using all assigning this material to tasks
+                  if r.resource_type == 'Material':
+                        usages = TaskResource.query.filter_by(resource_id=r.id).all()
+                        used_amount = sum(u.quantity for u in usages if u.quantity)
+                        r_dict['available_amount'] = r.total_amount - used_amount
+                  else:
+                        #don't care about equipment
+                        r_dict['available_amount'] = r.total_amount
+                              
+                  result.append(r_dict)
+                        
+            return jsonify(result)
       else:
             return jsonify([])
       

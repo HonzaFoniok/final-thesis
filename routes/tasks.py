@@ -416,29 +416,29 @@ def update_task_material_assignments(task_id): #RENAME maybe?
 
 @tasks_bp.route('/<int:task_id>/details', methods=['GET'])
 def get_task_details(task_id):
-    """
+      """
       Gets complete task data, a list of all employees and resources
       including their current assignment for UI purposes.
-    """
-    task = Task.query.get_or_404(task_id)
-    if not is_authorized(task.project_id):
+      """
+      task = Task.query.get_or_404(task_id)
+      if not is_authorized(task.project_id):
         return jsonify({'error': 'Read-only access.'}), 403
 
-    emps = Employee.query.all()
-    ress = Resource.query.all()
-    
-    # finding assigned resources
-    task_emps = {e.employee_id: e.allocation for e in TaskEmployee.query.filter_by(task_id=task_id).all()}
-    task_ress = {r.resource_id: r.quantity for r in TaskResource.query.filter_by(task_id=task_id).all()}
-    
-    return jsonify({
-        "id": task.id,
-        "name": task.name,
-        "start": task.start,
-        "end": task.end,
-        "employees": [{"id": e.id, "name": e.name, "alloc": task_emps.get(e.id, 0)} for e in emps],
-        "resources": [{"id": r.id, "name": r.name, "qty": task_ress.get(r.id, 0), "units": r.units if hasattr(r, 'units') else 'ks'} for r in ress]
-    })
+      emps = Employee.query.filter_by(project_id=task.project_id).all()
+      ress = Resource.query.filter_by(project_id=task.project_id).all()
+      
+      # finding assigned resources
+      task_emps = {e.employee_id: e.allocation for e in TaskEmployee.query.filter_by(task_id=task_id).all()}
+      task_ress = {r.resource_id: r.quantity for r in TaskResource.query.filter_by(task_id=task_id).all()}
+      
+      return jsonify({
+            "id": task.id,
+            "name": task.name,
+            "start": task.start,
+            "end": task.end,
+            "employees": [{"id": e.id, "name": e.name, "alloc": task_emps.get(e.id, 0)} for e in emps],
+            "resources": [{"id": r.id, "name": r.name, "qty": task_ress.get(r.id, 0), "units": r.units if hasattr(r, 'units') else 'ks'} for r in ress]
+      })
 
 @tasks_bp.route('/quick-add', methods = ['POST'])
 def quick_add_task():

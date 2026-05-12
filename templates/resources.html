@@ -62,7 +62,7 @@
             server: {
                 url: `/api/resources/?project_id=${PROJECT_ID}`,
                 // Mapping data from Python
-                then: data => data.map(r => [r.id, r.name, r.resource_type, r.total_amount, r.units, r.cost_per_unit])
+                then: data => data.map(r => [r.id, r.name, r.resource_type, r.available_amount, r.units, r.cost_per_unit])
             },
             sort: true,
             search: true,
