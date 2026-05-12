@@ -431,14 +431,33 @@ def get_task_details(task_id):
       task_emps = {e.employee_id: e.allocation for e in TaskEmployee.query.filter_by(task_id=task_id).all()}
       task_ress = {r.resource_id: r.quantity for r in TaskResource.query.filter_by(task_id=task_id).all()}
       
+      #filtering of employees and resources  for schdedule edit modal
+      assigned_emps = {}
+      available_emps = []
+      for e in emps:
+            if e.id in task_emps:
+                  assigned_emps[str(e.id)] = {"name": e.name, "alloc": task_emps[e.id]}
+            else:
+                  available_emps.append({"id": e.id, "name": e.name})
+
+      assigned_res = {}
+      available_res = []
+      for r in ress:
+            if r.id in task_ress:
+                  assigned_res[str(r.id)] = {"name": r.name, "qty": task_ress[r.id], "units": r.units or 'ks'}
+            else:
+                  available_res.append({"id": r.id, "name": r.name, "units": r.units or 'ks'})
+
       return jsonify({
             "id": task.id,
             "name": task.name,
             "start": task.start,
             "end": task.end,
-            "employees": [{"id": e.id, "name": e.name, "alloc": task_emps.get(e.id, 0)} for e in emps],
-            "resources": [{"id": r.id, "name": r.name, "qty": task_ress.get(r.id, 0), "units": r.units if hasattr(r, 'units') else 'ks'} for r in ress]
-      })
+            "assigned_emps": assigned_emps,
+            "available_emps": available_emps,
+            "assigned_res": assigned_res,
+            "available_res": available_res
+            })
 
 @tasks_bp.route('/quick-add', methods = ['POST'])
 def quick_add_task():
