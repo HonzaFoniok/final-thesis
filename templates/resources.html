@@ -68,7 +68,6 @@
                 // Mapping data from Python
                 then: data => data.map(r => [r.id, r.name, r.resource_type, r.available_amount, r.units, r.cost_per_unit])
             },
-            //sort: true,
             search: true,
             language: { search: { placeholder: 'Search for material...' } }
         }).render(document.getElementById("resources-table"));

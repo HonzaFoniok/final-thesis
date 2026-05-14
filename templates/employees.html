@@ -53,7 +53,6 @@
                 url: `/api/employees/?project_id=${PROJECT_ID}`,
                 then: data => data.map(emp => [emp.id, emp.name, emp.role, emp.capacity])
             },
-            //sort: true,
             search: true,
             language: { search: { placeholder: 'Search...' } }
         }).render(document.getElementById("employees-table"));

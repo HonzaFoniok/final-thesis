@@ -62,6 +62,30 @@ def create_project():
       except Exception as e:
             db.session.rollback()
             return jsonify({'error' : str(e)}), 500 
+
+@projects_bp.route('/<int:project_id>', methods=['PATCH'])
+def update_project(project_id):
+      """
+      Allows you to rename the project.
+      Requires a valid authorization token in the session or header.
+      """
+      if not is_authorized(project_id):
+            return jsonify({'error': 'You do not have permission to edit this project.'}), 403
+
+      project = Project.query.get_or_404(project_id)
+      data = request.get_json()
+    
+      new_name = data.get('name')
+      if not new_name or not new_name.strip():
+            return jsonify({'error': 'Project name cannot be empty.'}), 400
+
+      try:
+            project.name = new_name.strip()
+            db.session.commit()
+            return jsonify({'message': 'The project has been successfully renamed.', 'name': project.name}), 200
+      except Exception as e:
+            db.session.rollback()
+            return jsonify({'error': 'Error while saving to database.'}), 500
       
 @projects_bp.route('/<int:project_id>', methods = ['DELETE'])
 def delete_project(project_id):

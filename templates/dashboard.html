@@ -7,11 +7,16 @@
             <div class="project-grid">
                 {% if projects %}
                     {% for project in projects %}
-                    <div class="project-card">
-                        <a href="/project/{{ project.id }}/tasks" class="project-title">{{ project.name }}</a>
-                        
-                        <button class="btn-delete" onclick="deleteProject({{ project.id }})">Delete project</button>
-                    </div>
+                        <div class="project-card">
+                            <a href="/project/{{ project.id }}/tasks" class="project-title">{{ project.name }}</a>
+                                <div style="margin-top: 10px; display: flex; gap: 5px;">
+                                    <button class="btn-share" style="padding: 5px 10px; font-size: 12px;" 
+                                    onclick="renameProject({{ project.id }}, '{{ project.name }}')">Rename</button>
+            
+                                    <button class="btn-delete" style="padding: 5px 10px; font-size: 12px;" 
+                                    onclick="deleteProject({{ project.id }})">Delete</button>
+                                </div>
+                        </div>
                     {% endfor %}
                 {% else %}
                     <p class="empty-state">There are no projects. Start by creating one.</p>
@@ -44,6 +49,33 @@
                     }
                 } catch (err) {
                     console.error("Error:", err);
+                }
+            }
+
+            //renaming project
+            async function renameProject(id, oldName) {
+                const newName = prompt("Enter new name of project:", oldName);
+                
+                if (!newName || newName.trim() === "" || newName === oldName) return;
+
+                try {
+                    const response = await fetch(`/api/projects/${id}`, {
+                        method: 'PATCH',
+                        headers: { 
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ name: newName.trim() })
+                    });
+
+                    if (response.ok) {
+                        window.location.reload();
+                    } else {
+                        const data = await response.json();
+                        alert(data.error || "An error occurred while renaming.");
+                    }
+                } catch (err) {
+                    console.error("Error:", err);
+                    alert("Error communicating with the server.");
                 }
             }
 
