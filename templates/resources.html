@@ -1,22 +1,26 @@
 {% extends "base.html" %}
 
 {% block content %}
-    <div class="container">
+<div class="container">
         <h1>Resource list</h1>
 
-        <div class="add-form">
-            <input type="text" id="res-name" placeholder="Name (e.g. Testbench Alpha)" required style="flex: 2;">
+        <div class="add-form" style="display: flex; gap: 10px; align-items: center;">
+            
+            <input type="text" id="res-name" placeholder="Name (e.g. Testbench Alpha)" required 
+                   style="flex: 2.5;" title="Name of the resource">
         
-        <select id="res-type" style="flex: 1.5;">
-            <option value="Equipment">Equipment (Reusable)</option>
-            <option value="Material">Material (Consumable)</option>
-        </select>
-        
-        <input type="number" id="res-amount" placeholder="Amount" value="1" step="0.1" min="0" style="flex: 1;" title="Total available quantity">
-        <input type="text" id="res-units" placeholder="Units (pcs, kg...)" value="pcs" style="flex: 1;">
-        <input type="number" id="res-cost" placeholder="Price per unit" value="0" step="0.1" min="0" style="flex: 1;">
-        
-        <button class="btn-add" onclick="addResource()">Add to stock</button>
+            <select id="res-type" style="flex: 1.2;">
+                <option value="Equipment">Equipment (Reusable)</option>
+                <option value="Material">Material (Consumable)</option>
+            </select>
+            
+            <input type="number" id="res-amount" placeholder="Amount" value="1" step="0.1" min="0" 
+                   style="flex: 0.4; min-width: 60px;" title="Total available quantity">
+            
+            <input type="text" id="res-units" placeholder="Units" value="pcs" 
+                   style="flex: 0.3; min-width: 50px;" title="Unit of the resource">
+            
+            <button class="btn-add" onclick="addResource()" style="flex: none;">Add to stock</button>
         </div>
 
     <div id="resources-table"></div>
@@ -45,14 +49,14 @@
         grid = new gridjs.Grid({
             columns: [
                 { id: 'id', name: 'ID', hidden: true },
-                { id: 'name', name: 'Name' },
-                { id: 'type', name: 'Type' },
-                { id: 'amount', name: 'Available quantity' },
-                { id: 'units', name: 'Units' },
-                { id: 'cost', name: 'PPU' },
+                { id: 'name', name: 'Name', width: "40%" },
+                { id: 'type', name: 'Type', width: "15%" },
+                { id: 'amount', name: 'Available quantity', width: "20%", },
+                { id: 'units', name: 'Units', width: "10%" },
                 { 
                     id: 'action',
                     name: 'Action',
+                    width: "15%",
                     sort: false,
                     formatter: (cell, row) => {
                         return gridjs.html(`<button style="color:red; border:none; background:none; cursor:pointer; font-weight:bold; font-size: 16px;" onclick="deleteResource(${row.cells[0].data})">✖</button>`);
@@ -64,7 +68,7 @@
                 // Mapping data from Python
                 then: data => data.map(r => [r.id, r.name, r.resource_type, r.available_amount, r.units, r.cost_per_unit])
             },
-            sort: true,
+            //sort: true,
             search: true,
             language: { search: { placeholder: 'Search for material...' } }
         }).render(document.getElementById("resources-table"));
@@ -75,7 +79,7 @@
         const type = document.getElementById('res-type').value;
         const amount = document.getElementById('res-amount').value;
         const units = document.getElementById('res-units').value;
-        const cost = document.getElementById('res-cost').value;
+        //const cost = 0
 
         if (!name) return alert("Enter the name of the equipment/material!");
 
@@ -91,14 +95,12 @@
                 resource_type: type, 
                 total_amount: amount, 
                 units: units,
-                cost_per_unit: cost
             })
         });
 
         if (res.ok) {
             document.getElementById('res-name').value = '';
             document.getElementById('res-amount').value = '1';
-            document.getElementById('res-cost').value = '0';
             grid.forceRender(); 
         } else if (res.status === 403) {
                 alert("You do not have administrator rights to this project.");

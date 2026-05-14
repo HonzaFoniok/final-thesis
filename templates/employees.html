@@ -5,9 +5,9 @@
         <h1>Employees list</h1>
 
         <div class="inline-form-row">
-            <input type="text" id="emp-name" placeholder="Name (e.g. John Doe)">
-            <input type="text" id="emp-role" placeholder="Role (e.g. Tester)">
-            <input type="number" id="emp-cap" value="1">
+            <input type="text" id="emp-name" placeholder="Name (e.g. John Doe)", title="Name of the employee">
+            <input type="text" id="emp-role" placeholder="Role (e.g. Tester)", title="Role of the employee (Optional)">
+            <input type="number" id="emp-cap" value="1", title="Capacity in FTE">
             <button class="btn btn-add" onclick="addEmployee()">Add employee</button>
         </div>
 
@@ -36,12 +36,13 @@
         grid = new gridjs.Grid({
             columns: [
                 { id: 'id', name: 'ID', hidden: true },
-                { id: 'name', name: 'Name' },
-                { id: 'role', name: 'Role' },
-                { id: 'capacity', name: 'Capacity (FTE)' },
+                { id: 'name', name: 'Name', width: "40%", },
+                { id: 'role', name: 'Role', width: "30%", },
+                { id: 'capacity', name: 'Capacity (FTE)', width: "15%", },
                 { 
                     id: 'action',
                     name: 'Action',
+                    width: "15%",
                     sort: false,
                     formatter: (cell, row) => {
                         return gridjs.html(`<button style="color:red; border:none; background:none; cursor:pointer; font-weight:bold; font-size: 16px;" onclick="deleteEmployee(${row.cells[0].data})">✖</button>`);
@@ -52,7 +53,7 @@
                 url: `/api/employees/?project_id=${PROJECT_ID}`,
                 then: data => data.map(emp => [emp.id, emp.name, emp.role, emp.capacity])
             },
-            sort: true,
+            //sort: true,
             search: true,
             language: { search: { placeholder: 'Search...' } }
         }).render(document.getElementById("employees-table"));

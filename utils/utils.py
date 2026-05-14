@@ -14,7 +14,7 @@ def is_authorized(project_id):
       #trying to find token in header
       token = request.headers.get('X-Edit-Token')
       if token == "backend_session_active":
-        token = None
+            token = None
       #token from admin URL
       if not token:
             token = request.args.get('token')
