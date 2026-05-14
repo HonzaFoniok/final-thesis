@@ -146,77 +146,78 @@
 
 </div>
 
-<div id="unified-edit-modal" class="modal-overlay" style="display: none;">
-    <div class="modal-content" style="max-width: 550px;">
-        <div class="modal-header">
-            <h3>Edit Task Details</h3>
-            <button class="close-btn" onclick="closeUnifiedEditModal()">&times;</button>
-        </div>
-
-        <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px;">
-            <input type="hidden" id="edit-task-id">
-
-            <div>
-                <label style="font-size: 13px; font-weight: bold; color: #555;">Task name</label>
-                <input type="text" id="edit-task-name"
-                    style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #d1d5db; border-radius: 4px;">
+    <div id="unified-edit-modal" class="modal-overlay" style="display: none;">
+        <div class="modal-content" style="max-width: 650px; width: 90%; overflow-x: hidden;">
+            <div class="modal-header">
+                <h3>Edit task</h3>
+                <button class="close-btn" onclick="closeUnifiedEditModal()">&times;</button>
             </div>
 
-            <div style="display: flex; gap: 15px;">
-                <div style="flex: 1;">
-                    <label style="display: block; font-size: 13px; color: #555; margin-bottom: 5px;">Start</label>
-                    <input type="text" id="edit-task-start"
-                        style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
-                </div>
-                <div style="flex: 1;">
-                    <label style="display: block; font-size: 13px; color: #555; margin-bottom: 5px;">End</label>
-                    <input type="text" id="edit-task-end"
-                        style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px;">
-                </div>
-            </div>
+            <div class="modal-body" style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px;">
+                <input type="hidden" id="edit-task-id">
 
-            <div style="background: #f9fafb; padding: 10px; border-radius: 6px; border: 1px solid #e5e7eb;">
-                <label style="font-size: 13px; font-weight: bold; color: #555;">Employees (FTE)</label>
-
-                <div style="display: flex; gap: 10px; margin-top: 5px;">
-                    <select id="add-emp-select"
-                        style="flex: 2; padding: 6px; border-radius: 4px; border: 1px solid #d1d5db;">
-                    </select>
-                    <input type="number" id="add-emp-alloc" value="1.0" step="0.1" min="0.1"
-                        style="flex: 1; padding: 6px; border-radius: 4px; border: 1px solid #d1d5db;"
-                        title="FTE Allocation">
-                    <button class="btn btn-secondary" onclick="addEmployeeToUI()"
-                        style="padding: 6px 12px;">Add</button>
-                </div>
-
-                <div id="assigned-employees-list"
-                    style="margin-top: 10px; display: flex; flex-direction: column; gap: 5px;"></div>
-            </div>
-
-            <div style="background: #f9fafb; padding: 10px; border-radius: 6px; border: 1px solid #e5e7eb;">
-                <label style="font-size: 13px; font-weight: bold; color: #555;">Resources & Materials</label>
-
-                <div style="display: flex; gap: 10px; margin-top: 5px;">
-                    <select id="add-res-select"
-                        style="flex: 2; padding: 6px; border-radius: 4px; border: 1px solid #d1d5db;">
-                    </select>
-                    <input type="number" id="add-res-qty" value="1" step="0.1" min="0.1"
-                        style="flex: 1; padding: 6px; border-radius: 4px; border: 1px solid #d1d5db;" title="Quantity">
-                    <button class="btn btn-secondary" onclick="addResourceToUI()"
-                        style="padding: 6px 12px;">Add</button>
-                </div>
-
-                <div id="assigned-resources-list"
-                    style="margin-top: 10px; display: flex; flex-direction: column; gap: 5px;"></div>
-            </div>
-
-            <div class="modal-footer" style="display: flex; justify-content: space-between;">
-                <button class="btn"
-                    style="background-color: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;"
-                    onclick="deleteTaskFromUnified()">Delete Task</button>
                 <div>
-                    <button class="btn-cancel" onclick="closeUnifiedEditModal()">Cancel</button>
-                    <button class="btn-save" onclick="saveUnifiedTask()">Save Changes</button>
+                    <label style="font-size: 13px; font-weight: bold; color: #555;">Task name</label>
+                    <input type="text" id="edit-task-name"
+                        style="width: 100%; padding: 8px; margin-top: 5px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;">
+                </div>
+
+                <div style="display: flex; gap: 15px;">
+                    <div style="flex: 1;">
+                        <label style="display: block; font-size: 13px; color: #555; margin-bottom: 5px;">Start</label>
+                        <input type="text" id="edit-task-start"
+                            style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;">
+                    </div>
+                    <div style="flex: 1;">
+                        <label style="display: block; font-size: 13px; color: #555; margin-bottom: 5px;">End</label>
+                        <input type="text" id="edit-task-end"
+                            style="width: 100%; padding: 8px; border: 1px solid #d1d5db; border-radius: 4px; box-sizing: border-box;">
+                    </div>
+                </div>
+
+                <div style="background: #f9fafb; padding: 10px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                    <label style="font-size: 13px; font-weight: bold; color: #555;">Employees (FTE)</label>
+
+                    <div style="display: flex; gap: 10px; margin-top: 5px;">
+                        <select id="add-emp-select"
+                            style="flex: 2; padding: 6px; border-radius: 4px; border: 1px solid #d1d5db;">
+                        </select>
+                        <input type="number" id="add-emp-alloc" value="1.0" step="0.1" min="0.1"
+                            style="flex: 1; padding: 6px; border-radius: 4px; border: 1px solid #d1d5db;"
+                            title="FTE Allocation">
+                        <button class="btn btn-secondary" onclick="addEmployeeToUI()"
+                            style="padding: 6px 12px; white-space: nowrap;">Add</button>
+                    </div>
+
+                    <div id="assigned-employees-list"
+                        style="margin-top: 10px; display: flex; flex-direction: column; gap: 5px;"></div>
+                </div>
+
+                <div style="background: #f9fafb; padding: 10px; border-radius: 6px; border: 1px solid #e5e7eb;">
+                    <label style="font-size: 13px; font-weight: bold; color: #555;">Resources & Materials</label>
+
+                    <div style="display: flex; gap: 10px; margin-top: 5px;">
+                        <select id="add-res-select"
+                            style="flex: 2; padding: 6px; border-radius: 4px; border: 1px solid #d1d5db;">
+                        </select>
+                        <input type="number" id="add-res-qty" value="1" step="0.1" min="0.1"
+                            style="flex: 1; padding: 6px; border-radius: 4px; border: 1px solid #d1d5db;" title="Quantity">
+                        <button class="btn btn-secondary" onclick="addResourceToUI()"
+                            style="padding: 6px 12px; white-space: nowrap;">Add</button>
+                    </div>
+
+                    <div id="assigned-resources-list"
+                        style="margin-top: 10px; display: flex; flex-direction: column; gap: 5px;"></div>
+                </div>
+
+                <div class="modal-footer" style="display: flex; justify-content: space-between; padding-top: 10px;">
+                    <button class="btn"
+                        style="background-color: #ef4444; color: white; border: none; padding: 8px 12px; border-radius: 4px; cursor: pointer;"
+                        onclick="deleteTaskFromUnified()">Delete Task</button>
+                    <div>
+                        <button class="btn-cancel" onclick="closeUnifiedEditModal()">Cancel</button>
+                        <button class="btn-save" onclick="saveUnifiedTask()">Save Changes</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -307,16 +308,17 @@
         }
         // 1. Definiton of columns
         const columns = [
-            { id: 'row_num', name: '', width: '40px' },
+            { id: 'row_num', name: '', width: "3%"},
             { id: 'id', name: 'ID', hidden: true }, // hidden for user
-            { id: 'name', name: 'Name' },
-            { id: 'start', name: 'Start date' },
+            { id: 'name', name: 'Name', width: "10%" },
+            { id: 'start', name: 'Start date', width: "10%"},
             { id: 'end', name: 'End date' },
-            { id: 'progress', name: 'Progress' },
-            { id: 'dependencies', name: 'Dependencies [1, 2, 3, ....]' },
+            { id: 'progress', name: 'Progress', width: "8%"},
+            { id: 'dependencies', name: 'Dependencies', width: "10%"},
             {
                 id: 'include_weekends',
                 name: 'Weekends',
+                 width: "8%",
                 formatter: (cell, row) => {
 
                     // is checkbox checked
